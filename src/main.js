@@ -3,7 +3,7 @@ import './style.scss'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { GLTFExporter } from 'three/examples/jsm/Addons.js';
+import { GLTFExporter, ThreeMFLoader } from 'three/examples/jsm/Addons.js';
 
 const canvas = document.querySelector("#experience-canvas")
 
@@ -30,6 +30,10 @@ const TextureMap = {
 
 };
 
+const environmentMap = new THREE.CubeTextureLoader();
+environmentMap.setPath("textures/skybox");
+environmentMap.load("px.webp","nx.webp","py.webp","ny.webp","pz.webp","nz.webp");
+
 const loadedTextures = {
     day:{},
 }
@@ -53,19 +57,36 @@ loader.load("/models/portfolio_compressed-models.glb", (glb)=>
                         map: loadedTextures.day[keys],
                     });
                 child.material = material;
-
+                
+                if(child.name.includes("pc_glass") || child.name.includes("Glass")) {
+                    child.material = new THREE.MeshPhysicalMaterial({transmission: 1, 
+                        opacity: 1, 
+                        metalness: 0,
+                        roughness: 0,
+                        envMap: environmentMap,
+                        ior:1.5,
+                        thickness:0.01, 
+                        specularIntensity: 1, 
+                        envMapIntensity:1,
+                        lightIntensity:1,
+                        exposure: 1,
+                    })
+                 }
+                
+                 if(child.material.map){
+                    child.material.map.minFilter = THREE.LinearFilter;
+                }
                 }
             });
         }
-        scene.add(glb.scene);
+
     })
+    scene.add(glb.scene);
 
-}
-
-);
+});
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 
-    75,
+    35,
     sizes.width / sizes.height,
     0.1,
     1000);
