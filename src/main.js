@@ -31,7 +31,7 @@ const TextureMap = {
 };
 
 const environmentMap = new THREE.CubeTextureLoader();
-environmentMap.setPath("textures/skybox");
+environmentMap.setPath("/textures/skybox");
 environmentMap.load("px.webp","nx.webp","py.webp","ny.webp","pz.webp","nz.webp");
 
 const loadedTextures = {
