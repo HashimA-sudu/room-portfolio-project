@@ -25,14 +25,14 @@ const TextureMap = {
     secondT:{day: "/textures/secondTextureFinal.webp"},
     thirdT:{day: "/textures/thirdTextureSetFinal.webp"},
     inanimate_thirdT:{day: "/textures/thirdTextureSetFinal.webp"},
-
+    leaf: {day: "/textures/leaf.png"},
     collegeT: {day:"/textures/collegeSetFinal.webp"},
-
+    glass: {day:""},
 };
 
 const environmentMap = new THREE.CubeTextureLoader();
-environmentMap.setPath("/textures/skybox");
-environmentMap.load("px.webp","nx.webp","py.webp","ny.webp","pz.webp","nz.webp");
+environmentMap.setPath("/textures/skybox/");
+const envTexture = environmentMap.load("px.webp","nx.webp","py.webp","ny.webp","pz.webp","nz.webp");
 
 const loadedTextures = {
     day:{},
@@ -46,45 +46,65 @@ Object.entries(TextureMap).forEach(([key,paths])=>{
     
 });
 
+const scene = new THREE.Scene();
+scene.environment = envTexture;
+scene.background = envTexture;
 
 loader.load("/models/portfolio_compressed-models.glb", (glb)=>
 { 
     glb.scene.traverse(child=>{
         if(child.isMesh){
-            Object.keys(TextureMap).forEach(keys=> {
+            // Debug: Log all mesh names to console
+             if (!child.name.includes("leaf")){console.log("Mesh found:", child.name);}
+            
+            Object.keys(TextureMap).forEach(keys=> { // assign materials
                 if (child.name.includes(keys)) {
                     const material = new THREE.MeshBasicMaterial({
                         map: loadedTextures.day[keys],
                     });
+                
+                if (child.name.includes("hidden")) {
+                    const material = new THREE.MeshBasicMaterial({
+                        map: loadedTextures.day['leaf'],
+                });
+                }
                 child.material = material;
-                
-                if(child.name.includes("pc_glass") || child.name.includes("Glass")) {
-                    child.material = new THREE.MeshPhysicalMaterial({transmission: 1, 
-                        opacity: 1, 
-                        metalness: 0,
-                        roughness: 0,
-                        envMap: environmentMap,
-                        ior:1.5,
-                        thickness:0.01, 
-                        specularIntensity: 1, 
-                        envMapIntensity:1,
-                        lightIntensity:1,
-                        exposure: 1,
-                    })
-                 }
-                
-                 if(child.material.map){
+
+                if(child.material.map){ // fix distance thing
                     child.material.map.minFilter = THREE.LinearFilter;
                 }
+                
+        
+                if(child.name.includes("glass")) {
+                    // Move glass object up by 2 units on Z axis
+                    
+                    child.material = new THREE.MeshPhysicalMaterial({
+                        transmission: 0.2,
+                        transparent: true,
+                        opacity: 1,
+                        roughness: 0,
+                        metalness: 0,
+                        ior: 1.5,
+                        thickness: 0.02,
+                        envMap: envTexture,
+                        envMapIntensity: 1,
+                       
+                    });
+                 }
+
+
                 }
             });
+        }
+        else {
+            //console.log("child is not mesh: ", child.name)
         }
 
     })
     scene.add(glb.scene);
 
 });
-const scene = new THREE.Scene();
+
 const camera = new THREE.PerspectiveCamera( 
     35,
     sizes.width / sizes.height,
@@ -94,29 +114,14 @@ const camera = new THREE.PerspectiveCamera(
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
 renderer.setSize( sizes.width, sizes.height );
 renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-const cube = new THREE.Mesh( geometry, material );
-scene.add( cube );
 
 camera.position.z = 5;
 
 const controls = new OrbitControls( camera, renderer.domElement );
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
-//controls.update() must be called after any manual changes to the camera's transform
-
-function animate() {
-
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
-
-  renderer.render( scene, camera );
-
-}
 
 // event listeners
-
 window.addEventListener("resize", ()=>{
     sizes.width = window.innerWidth;
     sizes.height = window.innerHeight;
@@ -125,17 +130,12 @@ window.addEventListener("resize", ()=>{
     renderer.setSize( sizes.width, sizes.height );
     renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
     controls.update();
-    })
+})
 
 const render = () =>{
-    
     controls.update();
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
-
-  renderer.render( scene, camera );
-
-  window.requestAnimationFrame(render)
-
+    renderer.render( scene, camera );
+    window.requestAnimationFrame(render)
 }
+
 render()
