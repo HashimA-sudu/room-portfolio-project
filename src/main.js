@@ -7,7 +7,6 @@ import { GLTFExporter, ThreeMFLoader } from 'three/examples/jsm/Addons.js';
 import { zip } from 'three/examples/jsm/libs/fflate.module.js';
 
 const raycaster = new THREE.Raycaster();
-const raycasterObjects = [];
 const pointer = new THREE.Vector2();
 
 const canvas = document.querySelector("#experience-canvas")
@@ -99,8 +98,6 @@ window.addEventListener("mousemove", (e)=>
 }
 );
 
-
-
 //traversing children
 loader.load("/models/portfolio_compressed-models.glb", (glb)=>
 { 
@@ -114,12 +111,7 @@ loader.load("/models/portfolio_compressed-models.glb", (glb)=>
             else if(child.name.includes("glass")) {                    
                     child.material = glassMaterial;
             }
-            //put child in raycaster objs
-            if(child.name.includes("Raycaster")){
-                raycasterObjects.push(child);
-            }
-
-
+            
             if(child.name.includes("fan")){
                 if (child.name.includes("front")){
                     xAxisFans.push(child);
@@ -149,8 +141,6 @@ loader.load("/models/portfolio_compressed-models.glb", (glb)=>
                 
                 }
             });
-
-            
         }
         // else {
         //     console.log("child is not mesh: ", child.name)
@@ -212,19 +202,6 @@ const render = () =>{
     //raycaster
 
     raycaster.setFromCamera(pointer, camera);
-
-    const intersections = raycaster.intersectObject(raycasterObjects);
-
-    for(let i = 0; i< intersections.length; i++){
-        intersections[i].object.material.color.set(0xffffff);
-    }
-
-    if(intersections.length>0) {
-        document.body.style.cursor = "Pointer"
-    }
-    else 
-        document.body.style.cursor = "default"
-
 
     renderer.render( scene, camera );
     window.requestAnimationFrame(render)
