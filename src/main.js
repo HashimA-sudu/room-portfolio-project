@@ -4,6 +4,11 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { GLTFExporter, ThreeMFLoader } from 'three/examples/jsm/Addons.js';
+import { zip } from 'three/examples/jsm/libs/fflate.module.js';
+
+const raycaster = new THREE.Raycaster();
+const raycasterObjects = [];
+const pointer = new THREE.Vector2();
 
 const canvas = document.querySelector("#experience-canvas")
 
@@ -81,7 +86,22 @@ const VideoTexture = new THREE.VideoTexture(VideoElement);
 VideoTexture.colorSpace = THREE.SRGBColorSpace;
 VideoTexture.flipY = false;
 
+//fans of pc
+const xAxisFans = []; //front fans
+const yAxisFans = []; //back fans
+const zAxisFans = []; //gpu fans
 
+
+window.addEventListener("mousemove", (e)=>
+{
+    pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = (e.clientY / window.innerHeight) * 2 + 1;
+}
+);
+
+
+
+//traversing children
 loader.load("/models/portfolio_compressed-models.glb", (glb)=>
 { 
     glb.scene.traverse(child=>{
@@ -93,6 +113,22 @@ loader.load("/models/portfolio_compressed-models.glb", (glb)=>
                 });}    
             else if(child.name.includes("glass")) {                    
                     child.material = glassMaterial;
+            }
+            //put child in raycaster objs
+            if(child.name.includes("Raycaster")){
+                raycasterObjects.push(child);
+            }
+
+
+            if(child.name.includes("fan")){
+                if (child.name.includes("front")){
+                    xAxisFans.push(child);
+                }
+                else if(child.name.includes("back")) {
+                    yAxisFans.push(child);
+                }
+                else 
+                    zAxisFans.push(child);
             }
 
             // Debug: Log all mesh names to console
@@ -113,10 +149,12 @@ loader.load("/models/portfolio_compressed-models.glb", (glb)=>
                 
                 }
             });
+
+            
         }
-        else {
-            //console.log("child is not mesh: ", child.name)
-        }
+        // else {
+        //     console.log("child is not mesh: ", child.name)
+        // }
 
     })
     scene.add(glb.scene);
@@ -159,6 +197,35 @@ const render = () =>{
     // console.log(camera.position);
     // console.log("------");
     // console.log(controls.target);
+
+    //fans rotation (yes this is correctly implemented)
+    zAxisFans.forEach((fan)=>{
+        fan.rotation.y+=0.01;
+    });
+    yAxisFans.forEach((fan)=>{
+        fan.rotation.z+=0.01;
+    });
+    xAxisFans.forEach((fan)=>{
+        fan.rotation.x+=0.01;
+    });
+
+    //raycaster
+
+    raycaster.setFromCamera(pointer, camera);
+
+    const intersections = raycaster.intersectObject(raycasterObjects);
+
+    for(let i = 0; i< intersections.length; i++){
+        intersections[i].object.material.color.set(0xffffff);
+    }
+
+    if(intersections.length>0) {
+        document.body.style.cursor = "Pointer"
+    }
+    else 
+        document.body.style.cursor = "default"
+
+
     renderer.render( scene, camera );
     window.requestAnimationFrame(render)
 }
