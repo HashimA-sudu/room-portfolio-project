@@ -5,10 +5,14 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { GLTFExporter, ThreeMFLoader } from 'three/examples/jsm/Addons.js';
 import { zip } from 'three/examples/jsm/libs/fflate.module.js';
+import gsap from "gsap";
 
 const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
+const raycasterObjects = [];
 
+let currentIntersects = [];
+
+const pointer = new THREE.Vector2();
 const canvas = document.querySelector("#experience-canvas")
 
 const sizes = {
@@ -71,10 +75,43 @@ const glassMaterial = new THREE.MeshPhysicalMaterial({
                         depthWrite: false,
 });
 
+const Links = {
+    "github":"https://github.com/HashimA-sudu/",
+    "email":"mailto:hashimhamadalshawaf@gmail.com",
+}
+
+const modals = {
+    about:document.querySelector(".modal.about"),
+    projects:document.querySelector(".modal.projects"),
+    education:document.querySelector(".modal.education"),
+}
+
+const showModal = (modal) => {
+    modal.style.display = "block";
+
+    gsap.set(modal, {opacity:0});
+    gsap.to(modal, {
+        opacity:1,
+        duration: 0.5,
+    })
+
+};
+const hideModal = (modal) => {
+
+    gsap.set(modal, {opacity:1});
+    gsap.to(modal, {
+        opacity:0,
+        duration: 0.5,
+        onComplete: () =>{
+            modal.style.display = "none";
+        }
+    })
+
+};
 
 //screen videos (gameMAN, monitor, tv screen, etc..)
 const VideoElement = document.createElement("video");
-VideoElement.src = "./textures/video/monitor.mp4";
+VideoElement.src = "./textures/videos/monitor.mp4";
 VideoElement.loop = true;
 VideoElement.muted = true;
 VideoElement.playsInline = true;
@@ -94,7 +131,36 @@ const zAxisFans = []; //gpu fans
 window.addEventListener("mousemove", (e)=>
 {
     pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
-    pointer.y = (e.clientY / window.innerHeight) * 2 + 1;
+    pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+}
+);
+
+//clicking on showcase objs or github/email
+window.addEventListener("click", (e)=>
+{
+    if(currentIntersects.length>0){
+        const object = currentIntersects[0].object;
+        Object.entries(Links).forEach(([key,url]) =>{ //for links
+             if(object.name.includes(key)){ // if contains links keys
+                const newWindow = window.open();
+                newWindow.opener = null;
+                newWindow.location = url;
+                newWindow.target = "_blank";
+                newWindow.rel = "noopener noreferrer";
+            }
+            else {
+                //put for showcase 
+            }
+        } 
+        ); // object entries end
+        if(object.name.includes("about_sign")) {
+            showModal(modals.about);
+        }else if(object.name.includes("projects_sign")) {
+            showModal(modals.projects);
+        }else if(object.name.includes("education_sign")) {
+            showModal(modals.education);
+        }
+    }
 }
 );
 
@@ -104,9 +170,15 @@ loader.load("/models/portfolio_compressed-models.glb", (glb)=>
     glb.scene.traverse(child=>{
         
         if(child.isMesh){
+            
+            if(child.name.includes("Raycast")) {
+                raycasterObjects.push(child);
+                //console.log("Child "+child.name+" in raycast objects")
+            }
+
             if(child.name.includes("monitor_screen")) {
                 child.material = new THREE.MeshBasicMaterial({
-                   // map: VideoTexture,
+                   map: VideoTexture,
                 });}    
             else if(child.name.includes("glass")) {                    
                     child.material = glassMaterial;
@@ -127,19 +199,20 @@ loader.load("/models/portfolio_compressed-models.glb", (glb)=>
              if (!child.name.includes("leaf")){console.log("Mesh found:", child.name);}
             
             Object.keys(TextureMap).forEach(keys=> { // assign materials
-                if (child.name.includes(keys)) {
-                    const material = new THREE.MeshBasicMaterial({
+                if (child.name.includes(keys)) 
+                    {
+                        const material = new THREE.MeshBasicMaterial({
                         map: loadedTextures.day[keys],
                     });
                 
                 
-                child.material = material;
+                    child.material = material;
 
-                if(child.material.map){ // fix distance thing
-                    child.material.map.minFilter = THREE.LinearFilter;
-                }
-                
-                }
+                    if(child.material.map)
+                        { // fix distance thing
+                            child.material.map.minFilter = THREE.LinearFilter;
+                        }   
+                    }
             });
         }
         // else {
@@ -203,6 +276,49 @@ const render = () =>{
 
     raycaster.setFromCamera(pointer, camera);
 
+    currentIntersects = raycaster.intersectObjects(raycasterObjects);
+
+    for (let i = 0; i<currentIntersects.length; i++){
+        currentIntersects[i].object.material.color.set(0xff0000);
+    }
+
+    if(currentIntersects.length>0){ //if there are intersects
+
+        const currentIntersectObject = currentIntersects[0].object;
+
+        if(currentIntersectObject.name.includes("Showcase")){ //showcase objects
+        document.body.style.cursor = "pointer";
+        }
+        else if (currentIntersectObject.name.includes("chair")) { // rotating chair
+        document.body.style.cursor = "pointer";
+        }
+        else if(currentIntersectObject.name.includes("github")) { // 
+        document.body.style.cursor = "pointer";
+        }
+        else if(currentIntersectObject.name.includes("email")) { // 
+        document.body.style.cursor = "pointer";
+        }
+        else if(currentIntersectObject.name.includes("Hover")){
+
+        }
+        else if(currentIntersectObject.name.includes("Hverup")){
+
+        }
+        else if(currentIntersectObject.name.includes("dropdown")){
+
+        }
+        else if(currentIntersectObject.name.includes("Hverdown")){
+
+        }
+        else
+        {        
+            document.body.style.cursor = "default";    
+        }
+
+    
+    }
+    else {document.body.style.cursor = "default";} // no intersects
+        
     renderer.render( scene, camera );
     window.requestAnimationFrame(render)
 }
