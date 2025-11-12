@@ -1,38 +1,73 @@
+@use "./styles/fonts.scss";
+@use "./styles/variables.scss" as vars;
+@use "./styles/reset.scss";
+
 *{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
-
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Oswald", sans-serif;
   
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
 #experience {
-position: fixed;
-height: 100%;
-width: 100%;
-top: 0;
-left: 0;
-overflow: hidden;
-  #experience-canvas{height: 100%;
-width: 100%;}
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  #experience-canvas{
+    height: 100%;
+    width: 100%;
+  }
 }
-
 .modal {
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
-  color: white; 
+  color: black; 
   transform: translate(-50%, -50%);
   font-size: 32px;
   z-index: 999;
-  display:none;
-  background-color:black;
+  display: none;
+  background-color: vars.$base-blue;
+  padding: 20px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: scroll;
+  border-radius: 8px;
+  border-color: white;
+  border-style: outset;
   
+  .modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .modal-title {
+    font-size: clamp(18px, 5vw, 32px);
+    word-wrap: break-word;
+  }
+  
+  .modal-exit-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #333;
+    color: white;
+    border: 2px solid white;
+    border-radius: 4px;
+    align-self: flex-end;
+    margin-top: auto;
+    &:hover {
+      background-color: #555;
+    }
+  }
 }
