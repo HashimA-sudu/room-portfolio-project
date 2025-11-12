@@ -86,6 +86,14 @@ const modals = {
     education:document.querySelector(".modal.education"),
 }
 
+document.querySelectorAll(".modal-exit-button").forEach(button=>{
+    button.addEventListener("click", (e)=>{
+        const modal = e.target.closest(".modal");
+        hideModal(modal);
+    }
+    )
+});
+
 const showModal = (modal) => {
     modal.style.display = "block";
 
@@ -132,8 +140,8 @@ window.addEventListener("mousemove", (e)=>
 {
     pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
     pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
-}
-);
+});
+
 
 //clicking on showcase objs or github/email
 window.addEventListener("click", (e)=>

@@ -27,11 +27,12 @@ width: 100%;}
 .modal {
   position: absolute;
   top: 50%;
-  bottom: 50%;
+  left: 50%;
+  color: white; 
   transform: translate(-50%, -50%);
   font-size: 32px;
   z-index: 999;
-  display: none;
-  background-color:cornflowerblue;
+  display:none;
+  background-color:black;
   
 }
