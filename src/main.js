@@ -7,6 +7,20 @@ import { GLTFExporter, ThreeMFLoader } from 'three/examples/jsm/Addons.js';
 import { zip } from 'three/examples/jsm/libs/fflate.module.js';
 import gsap from "gsap";
 
+
+/////////
+//  TODO
+// make showcase,
+// rotating acWind
+//  fix textures of aboutMe sign
+// add music and sound effects
+//
+//
+//
+//
+//
+/////////
+
 const raycaster = new THREE.Raycaster();
 const raycasterObjects = [];
 
@@ -79,6 +93,10 @@ const glassMaterial = new THREE.MeshPhysicalMaterial({
 const Links = {
     "github":"https://github.com/HashimA-sudu/",
     "email":"mailto:hashimhamadalshawaf@gmail.com",
+    "COOP":"https://github.com/HashimA-sudu/coopRecommender",
+    "japaneseLink":"https://github.com/HashimA-sudu/QuickJapaneseLookup",
+    "movie":"https://github.com/HashimA-sudu/MovieRecommender",
+    
 }
 
 const modals = {
@@ -93,6 +111,13 @@ let about2 = null;
 let project1 = null;
 let project2 = null;
 let project3 = null;
+let projectLight = null;
+let projectWire = null;
+let aboutLight = null;
+let aboutWire = null;
+
+//showcase vars
+
 
 let hat = null;
 let college = null;
@@ -160,6 +185,179 @@ const xAxisFans = []; //front fans
 const yAxisFans = []; //back fans
 const zAxisFans = []; //gpu fans
 
+
+//-------showcase mode code------------//
+
+// Add these variables at the top with your other declarations
+let showcaseMode = false;
+let showcasedObjects = [];
+let previousCameraPosition = new THREE.Vector3();
+let previousControlsTarget = new THREE.Vector3();
+let gameboyScreenBody = null;
+let gameboyScreen = null;
+
+// Function to enter showcase mode - just zooms in
+function enterShowcaseMode(object) {
+    if (showcaseMode) return;
+    
+    showcaseMode = true;
+    
+    // Determine which objects to showcase
+    let objectsToShowcase = [];
+    
+    if (object.name.toLowerCase().includes("gameboy")) {
+        // Find all gameboy related objects
+        scene.traverse((child) => {
+            if (child.isMesh) {
+                if (child.name.includes("gameboy_screen_Raycast_Showcase")) {
+                    objectsToShowcase.push(child);
+                    gameboyScreen = child;
+                    
+                } else if (child.name.includes("gameboyScreenBody_firstT_Raycast_Showcase")) {
+                    objectsToShowcase.push(child);
+                    gameboyScreenBody = child;
+
+                    // Store initial rotation
+                    if (!child.userData.InitialRotation) {
+                    }
+                } else if (child.name.includes("gameboy_body_secondT_Raycast_Showcase")) {
+                    objectsToShowcase.push(child);
+                }
+            }
+        });
+    } else {
+        // Single object showcase
+        objectsToShowcase = [object];
+    }
+    
+    if (objectsToShowcase.length === 0) return;
+    
+    showcasedObjects = objectsToShowcase;
+    
+    // Store current camera state
+    previousCameraPosition.copy(camera.position);
+    previousControlsTarget.copy(controls.target);
+    
+    // Calculate bounding box for all showcased objects
+    const combinedBox = new THREE.Box3();
+    objectsToShowcase.forEach(obj => {
+        const box = new THREE.Box3().setFromObject(obj);
+        combinedBox.union(box);
+    });
+    
+    const center = combinedBox.getCenter(new THREE.Vector3());
+    const size = combinedBox.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    
+    // Calculate optimal camera distance
+    const fov = camera.fov * (Math.PI / 180);
+    const cameraDistance = Math.abs(maxDim / Math.sin(fov / 2)) *1;
+    
+    // Calculate camera position (offset from center)
+    const direction = new THREE.Vector3()
+        .subVectors(camera.position, controls.target)
+        .normalize();
+    const showcasePosition = new THREE.Vector3()
+        .copy(center)
+        .add(direction.multiplyScalar(cameraDistance));
+    
+    // Animate camera to showcase position
+    gsap.to(camera.position, {
+        x: showcasePosition.x,
+        y: showcasePosition.y,
+        z: showcasePosition.z,
+        duration: 1,
+        ease: "power2.inOut"
+    });
+    
+    gsap.to(controls.target, {
+        x: center.x,
+        y: center.y,
+        z: center.z,
+        duration: 1,
+        ease: "power2.inOut"
+    });
+    
+    showShowcaseUI();
+}
+
+// Function to exit showcase mode
+function exitShowcaseMode() {
+    if (!showcaseMode) return;
+    
+    // Animate camera back to original position
+    gsap.to(camera.position, {
+        x: previousCameraPosition.x,
+        y: previousCameraPosition.y,
+        z: previousCameraPosition.z,
+        duration: 1,
+        ease: "power2.inOut"
+    });
+    
+    gsap.to(controls.target, {
+        x: previousControlsTarget.x,
+        y: previousControlsTarget.y,
+        z: previousControlsTarget.z,
+        duration: 1,
+        ease: "power2.inOut",
+        onComplete: () => {
+            // Clean up
+            showcaseMode = false;
+            showcasedObjects = [];
+            
+            // Hide showcase UI
+            hideShowcaseUI();
+        }
+    });
+}
+
+
+// UI functions for showcase mode
+function showShowcaseUI() {
+    // Create exit button if it doesn't exist
+    let exitButton = document.getElementById('showcase-exit');
+    if (!exitButton) {
+        exitButton = document.createElement('button');
+        exitButton.id = 'showcase-exit';
+        exitButton.textContent = '✕ Exit';
+        exitButton.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 2px solid white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 1000;
+            transition: background 0.3s;
+        `;
+        exitButton.addEventListener('mouseenter', () => {
+            exitButton.style.background = 'rgba(255, 255, 255, 0.2)';
+        });
+        exitButton.addEventListener('mouseleave', () => {
+            exitButton.style.background = 'rgba(0, 0, 0, 0.7)';
+        });
+        exitButton.addEventListener('click', exitShowcaseMode);
+        document.body.appendChild(exitButton);
+    }
+    exitButton.style.display = 'block';
+}
+
+function hideShowcaseUI() {
+    const exitButton = document.getElementById('showcase-exit');
+    const instructions = document.getElementById('showcase-instructions');
+    
+    if (exitButton) exitButton.style.display = 'none';
+    if (instructions) instructions.style.display = 'none';
+    
+
+}
+
+
+/////////////////////////////////////////
 function handleRaycasterInteraction(){
     if(currentIntersects.length>0){
         const object = currentIntersects[0].object;
@@ -172,7 +370,9 @@ function handleRaycasterInteraction(){
                 newWindow.rel = "noopener noreferrer";
             }
             else if(object.name.includes("Showcase")){
-                //put for showcase 
+                if (!showcaseMode ) {
+                        enterShowcaseMode(object);
+                    }
             }
             else if(object.name.includes("chair_thirdT_Raycast_rotation")){
                 playRotation("chair");
@@ -283,6 +483,22 @@ loader.load("/models/portfolio_compressed-models.glb", (glb)=>
                 acWind = child;
                 child.userData.initialRotation = new THREE.Euler().copy(child.rotation);
             }
+            else if(child.name.includes("projects_lights_secondT_Raycast_dropdown")){
+                projectLight = child;
+                child.userData.initialPosition = new THREE.Vector3().copy(child.position);
+            }
+            else if(child.name.includes("project_wire_firstT_Raycast_dropdown")){
+                projectWire = child;
+                child.userData.initialPosition = new THREE.Vector3().copy(child.position);
+            }
+            else if(child.name.includes("about_lights_firstT_Raycast_dropdown")){
+                aboutLight = child;
+                child.userData.initialPosition = new THREE.Vector3().copy(child.position);
+            }
+            else if(child.name.includes("about_wire_firstT_Raycast_dropdown")){
+                aboutWire = child;
+                child.userData.initialPosition = new THREE.Vector3().copy(child.position);
+            }
             
             if(child.name.includes("fan")){
                 if (child.name.includes("front")){
@@ -356,8 +572,10 @@ window.addEventListener("resize", ()=>{
 })
 
 function playSignAnimation(object, isHovering){
-    if(!about1||!about2||!project1||!project2||!project3||!hat||!college) return;
+    if(!about1||!about2||!project1||!project2||!project3||!hat||!college||!aboutWire||!aboutLight||!projectLight||!projectWire) return;
+    
     console.log("playing sign anim for:", object.name)
+    if(showcaseMode) return;
     
     // Kill tweens for the sign object
     gsap.killTweensOf(object.scale);
@@ -372,6 +590,8 @@ function playSignAnimation(object, isHovering){
             // Kill tweens for about objects
             gsap.killTweensOf(about1.position);
             gsap.killTweensOf(about2.position);
+            gsap.killTweensOf(aboutWire.position);
+            gsap.killTweensOf(aboutLight.position);
             
             gsap.to(object.position, 
         {
@@ -394,6 +614,18 @@ function playSignAnimation(object, isHovering){
             ease: "bounce.out(1.2)",
             
         });
+            gsap.to(aboutWire.position, 
+        {
+            y: aboutWire.userData.initialPosition.y*0.94, 
+            duration:0.2,
+            ease: "back.out(0.3)",
+        });
+            gsap.to(aboutLight.position, 
+        {
+            y: aboutLight.userData.initialPosition.y*0.94, 
+            duration:0.2,
+            ease: "back.out(0.3)",
+        });
         }
         else if(object.name.includes("education")){
             // Speed up hat rotation
@@ -413,6 +645,8 @@ function playSignAnimation(object, isHovering){
             gsap.killTweensOf(project1.position);
             gsap.killTweensOf(project2.position);
             gsap.killTweensOf(project3.position);
+            gsap.killTweensOf(projectLight.position);
+            gsap.killTweensOf(projectWire.position);
             
             gsap.to(object.position, 
         {
@@ -423,25 +657,38 @@ function playSignAnimation(object, isHovering){
         });
             gsap.to(project1.position, 
         {
-            y: project1.userData.initialPosition.y*1.08, 
+            y: project1.userData.initialPosition.y*1.09, 
             duration:0.5,
             ease: "bounce.out(1.2)",
             
         });
             gsap.to(project3.position, 
         {
-            y: project3.userData.initialPosition.y*1.08, 
+            y: project3.userData.initialPosition.y*1.09, 
             duration:0.5,
             ease: "bounce.out(1.2)",
             
         });
             gsap.to(project2.position, 
         {
-            y: project2.userData.initialPosition.y*0.95, 
+            y: project2.userData.initialPosition.y*0.97, 
             duration:0.5,
-            ease: "bounce.out(1.2)",
+            ease: "back.out(0.3)",
             
         });
+            gsap.to(projectLight.position, 
+        {
+            y: projectLight.userData.initialPosition.y*0.94, 
+            duration:0.2,
+            ease: "back.out(0.3)",
+            
+        });
+            gsap.to(projectWire.position, 
+        {
+            y: projectWire.userData.initialPosition.y*0.94, 
+            duration:0.2,
+            ease: "back.out(0.3)",
+        }); 
         }
     
     }else {
@@ -452,6 +699,9 @@ function playSignAnimation(object, isHovering){
         gsap.killTweensOf(project1.position);
         gsap.killTweensOf(project2.position);
         gsap.killTweensOf(project3.position);
+
+         gsap.killTweensOf(projectLight.position);
+        gsap.killTweensOf(projectWire.position);
         
         // Reset hat rotation speed to normal
         hatRotationSpeed = 0.009;
@@ -511,43 +761,57 @@ function playSignAnimation(object, isHovering){
             ease: "power2.out",
             
         });
+        gsap.to(projectLight.position, 
+        {
+            x: projectLight.userData.initialPosition.x, 
+            y: projectLight.userData.initialPosition.y, 
+            z: projectLight.userData.initialPosition.z, 
+            duration:0.3,
+            ease: "power2.out",
+            
+        });
+        gsap.to(projectWire.position, 
+        {
+            x: projectWire.userData.initialPosition.x, 
+            y: projectWire.userData.initialPosition.y, 
+            z: projectWire.userData.initialPosition.z, 
+            duration:0.3,
+            ease: "power2.out",
+            
+        });
+        gsap.to(aboutLight.position, 
+        {
+            x: aboutLight.userData.initialPosition.x, 
+            y: aboutLight.userData.initialPosition.y, 
+            z: aboutLight.userData.initialPosition.z, 
+            duration:0.3,
+            ease: "power2.out",
+            
+        });
+        gsap.to(aboutWire.position, 
+        {
+            x: aboutWire.userData.initialPosition.x, 
+            y: aboutWire.userData.initialPosition.y, 
+            z: aboutWire.userData.initialPosition.z, 
+            duration:0.3,
+            ease: "power2.out",
+            
+        });
+        
+        //gsap.to(.position, {visibility:hidden});
     }
 }
 
 function playHoverAnimation(object, isHovering){
     gsap.killTweensOf(object.scale);
-    gsap.killTweensOf(object.position);
-    gsap.killTweensOf(object.rotation);
-
-    if(object.userData.isAnimating==true) return;
-
-    if(isHovering){
-        if(object.name.includes("college")){
-            gsap.to(object.position, 
-        {
-            y: object.userData.initialPosition.y*1.4, 
-            duration:0.5,
-            ease: "bounce.out(1)",
-            
-        });}
-        else{
-            gsap.to(object.position, 
-            {
-                y: object.userData.initialPosition.y*1.03, 
-                duration:0.5,
-                ease: "bounce.out(1.2)",
-                
-            });
-        }
-    
-    }else {
+    if(showcaseMode){
         gsap.to(object.scale, 
         {
             x: object.userData.initialScale.x, 
             y: object.userData.initialScale.y,
             z: object.userData.initialScale.z,
             duration:0.2,
-            ease: "bounce.out(1.5)",
+            ease: "power1.out(1.5)",
         });
         gsap.to(object.position, 
         {
@@ -555,13 +819,66 @@ function playHoverAnimation(object, isHovering){
             y: object.userData.initialPosition.y, 
             z: object.userData.initialPosition.z, 
             duration:0.2,
-            ease: "bounce.out(1.5)",
+            ease: "power1.out(1.5)",
+            
+        });
+        return
+    }
+    gsap.killTweensOf(object.position);
+    gsap.killTweensOf(object.rotation);
+    if(showcaseMode) return;
+    if(object.userData.isAnimating==true) return;
+
+    if(isHovering){
+        if(object.name.includes("email") || object.name.includes("github")){
+            gsap.to(object.scale, 
+        {
+            x: object.userData.initialScale.x*1.07, 
+            y: object.userData.initialScale.y*1.07,
+            z: object.userData.initialScale.z*1.07,
+            duration:0.1,
+            ease: "power1.in(1.2)",
+        });
+
+        }else {
+            gsap.to(object.scale, 
+        {
+            x: object.userData.initialScale.x*1.05, 
+            y: object.userData.initialScale.y*1.05,
+            z: object.userData.initialScale.z*1.05,
+            duration:0.1,
+            ease: "back.out(1.2)",
+        });
+            gsap.to(object.position, 
+            {
+                y: object.userData.initialPosition.y*1.02, 
+                duration:0.3,
+                ease: "back.out(1.2)",
+                
+            });
+        }    
+    }else {
+        gsap.to(object.scale, 
+        {
+            x: object.userData.initialScale.x, 
+            y: object.userData.initialScale.y,
+            z: object.userData.initialScale.z,
+            duration:0.2,
+            ease: "power1.out(1.5)",
+        });
+        gsap.to(object.position, 
+        {
+            x: object.userData.initialPosition.x, 
+            y: object.userData.initialPosition.y, 
+            z: object.userData.initialPosition.z, 
+            duration:0.2,
+            ease: "power1.out(1.5)",
             
         });
     }
 }
 
-function playRotation(str){
+function playRotation(str="chair"){
     gsap.killTweensOf(chair.rotation);
     gsap.killTweensOf(acWind.rotation);
     if(str=="chair"){
@@ -573,14 +890,7 @@ function playRotation(str){
             ease: "back.out(0.3)",
         });
     }
-    else if(str=="acWind"){
-        console.log("clicked on ac wind thing");
-        if(acActive>3){
-            acActive=0
-        }else
-            acActive+=1;
-        console.log("now it is: "+acActive);
-    }
+    
 }
 const render = () =>{
     controls.update();
@@ -600,21 +910,23 @@ const render = () =>{
     });
 
     // Hat constant rotation
-    if(hat) {
+    if(hat && showcaseMode==false) {
         college.rotation.y+=hatRotationSpeed;
         hat.rotation.y += hatRotationSpeed;
     }
+    if(acWind) {
+        for(let i = 0; i<0.1;i+=0.01)
+        {
+            acWind.rotation.y+=i
+        }
+        for(let i = 0; i<0.1;i+=0.01)
+        {
+            acWind.rotation.y-=i
 
-    // if(acActive<3){
-    //     console.log("AC rotation is: "+acWind.rotation.y);
-    //     if(acWind.rotation.y==1){
-    //         acWind.rotation.y-=0.01;
-    //     }
-    //     else if (acWind.rotation.y==0)
-    //     {
-    //         acWind.rotation.y+=0.01;
-    //     }
-    // }
+        }
+        
+
+    }
 
     //raycaster
 
@@ -671,12 +983,17 @@ const render = () =>{
         else if(currentIntersectObject.name.includes("github")) { // 
         document.body.style.cursor = "pointer";
         }
-        else if(currentIntersectObject.name.includes("email")) { // 
+        else if(currentIntersectObject.name.includes("COOP")) { // 
         document.body.style.cursor = "pointer";
         }
-        else if(currentIntersectObject.name.includes("backandforth")){
+        else if(currentIntersectObject.name.includes("movies")) { // 
         document.body.style.cursor = "pointer";
-
+        }
+        else if(currentIntersectObject.name.includes("japaneseLink")) { // 
+        document.body.style.cursor = "pointer";
+        }
+        else if(currentIntersectObject.name.includes("email")) { // 
+        document.body.style.cursor = "pointer";
         }
         else
         {        
@@ -691,7 +1008,7 @@ const render = () =>{
             {
                 if(currentHoverObject.name.includes("sign")){
                     playSignAnimation(currentHoverObject, false);
-                } else {
+                } else{
                     playHoverAnimation(currentHoverObject, false);
                 }
                 currentHoverObject = null;
