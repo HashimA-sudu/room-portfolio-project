@@ -171,6 +171,7 @@ const hideModal = (modal) => {
 const VideoElement = document.createElement("video");
 VideoElement.src = "./textures/videos/monitor.mp4";
 VideoElement.loop = true;
+VideoElement.flipY = true;
 VideoElement.muted = true;
 VideoElement.playsInline = true;
 VideoElement.autoplay = true;
