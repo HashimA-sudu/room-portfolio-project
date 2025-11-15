@@ -116,6 +116,8 @@ let projectWire = null;
 let aboutLight = null;
 let aboutWire = null;
 
+let monitor 
+
 //showcase vars
 
 
@@ -167,11 +169,15 @@ const hideModal = (modal) => {
 
 };
 
+
+
+/////////////////////
+
+
 //screen videos (gameMAN, monitor, tv screen, etc..)
 const VideoElement = document.createElement("video");
 VideoElement.src = "./textures/videos/monitor.mp4";
 VideoElement.loop = true;
-VideoElement.flipY = true;
 VideoElement.muted = true;
 VideoElement.playsInline = true;
 VideoElement.autoplay = true;
@@ -180,6 +186,109 @@ VideoElement.play();
 const VideoTexture = new THREE.VideoTexture(VideoElement);
 VideoTexture.colorSpace = THREE.SRGBColorSpace;
 VideoTexture.flipY = false;
+VideoTexture.center.set(0.5, 0.5);
+VideoTexture.rotation = (Math.PI / 2);
+VideoTexture.repeat.set(1, 2); // Adjust to zoom out (try 0.8, 0.7, 0.5, etc.)
+VideoTexture.offset.set(0, -0.63); // Center the texture
+
+//for sticky up
+const VideoElementUp = document.createElement("video");
+VideoElementUp.src = "./textures/videos/japanese_video.mp4";
+VideoElementUp.loop = true;
+VideoElementUp.muted = true;
+VideoElementUp.playsInline = true;
+VideoElementUp.autoplay = false; // Changed to false
+VideoElementUp.currentTime = 0; // Start at first frame
+
+const VideoTextureUp = new THREE.VideoTexture(VideoElementUp);
+VideoTextureUp.colorSpace = THREE.SRGBColorSpace;
+VideoTextureUp.flipY = false;
+VideoTextureUp.center.set(0.5, 0.5);
+VideoTextureUp.rotation = (Math.PI / 2);
+VideoTextureUp.repeat.set(0.8, 1);
+VideoTextureUp.offset.set(0, -0.14);
+
+// for sticky left
+const VideoElementLeft = document.createElement("video");
+VideoElementLeft.src = "./textures/videos/movies_video.mp4";
+VideoElementLeft.loop = true;
+VideoElementLeft.muted = true;
+VideoElementLeft.playsInline = true;
+VideoElementLeft.autoplay = false; // Changed to false
+VideoElementLeft.currentTime = 0;
+
+const VideoTextureLeft = new THREE.VideoTexture(VideoElementLeft);
+VideoTextureLeft.colorSpace = THREE.SRGBColorSpace;
+VideoTextureLeft.flipY = false;
+VideoTextureLeft.center.set(0.5, 0.5);
+VideoTextureLeft.rotation = (Math.PI / 2);
+VideoTextureLeft.repeat.set(0.8, 1);
+VideoTextureLeft.offset.set(0,-0.14);
+
+//for sticky right
+const VideoElementRight = document.createElement("video");
+VideoElementRight.src = "./textures/videos/coop_video.mp4";
+VideoElementRight.loop = true;
+VideoElementRight.muted = true;
+VideoElementRight.playsInline = true;
+VideoElementRight.autoplay = false; // Changed to false
+VideoElementRight.currentTime = 0;
+
+const VideoTextureRight = new THREE.VideoTexture(VideoElementRight);
+VideoTextureRight.colorSpace = THREE.SRGBColorSpace;
+VideoTextureRight.flipY = false;
+VideoTextureRight.center.set(0.5, 0.5);
+VideoTextureRight.rotation = -(Math.PI / 2);
+VideoTextureRight.repeat.set(0.8,1);
+VideoTextureRight.offset.set(0, 0.11);
+
+//for gameboy
+const VideoElementGame = document.createElement("video");
+VideoElementGame.src = "./textures/videos/dkc2.mp4";
+VideoElementGame.loop = true;
+VideoElementGame.muted = true;
+VideoElementGame.playsInline = true;
+VideoElementGame.autoplay = false; // Changed to false
+VideoElementGame.currentTime = 0;
+
+const VideoTextureGame = new THREE.VideoTexture(VideoElementGame);
+VideoTextureGame.colorSpace = THREE.SRGBColorSpace;
+VideoTextureGame.flipY = false;
+VideoTextureGame.center.set(0.5, 0.5);
+VideoTextureGame.rotation = -(Math.PI / 2);
+VideoTextureGame.repeat.set(0.9,0.9);
+VideoTextureGame.offset.set(0, 0);
+
+//for TV
+const VideoElementTV = document.createElement("video");
+VideoElementTV.src = "./textures/videos/movies_video.mp4";
+VideoElementTV.loop = true;
+VideoElementTV.muted = true;
+VideoElementTV.playsInline = true;
+VideoElementTV.autoplay = false; // Changed to false
+VideoElementTV.currentTime = 0;
+
+const VideoTextureTV = new THREE.VideoTexture(VideoElementTV);
+VideoTextureTV.colorSpace = THREE.SRGBColorSpace;
+VideoTextureTV.flipY = false;
+VideoTextureTV.center.set(0.5, 0.5);
+VideoTextureTV.rotation = (Math.PI / 2);
+VideoTextureTV.repeat.set(1.3,1.3);
+VideoTextureTV.offset.set(0.18, -0.1);
+
+const showcaseVideos = new Map([
+    ['monitorup', VideoElementUp],
+    ['monitorleft', VideoElementLeft],
+    ['monitorright', VideoElementRight],
+    ['gameboy_screen', VideoElementGame],
+    ['tv_screen', VideoElementTV],
+    ['stickyright', VideoElementRight],
+    ['stickyleft', VideoElementLeft],
+    ['casette', VideoElementLeft],
+    ['stickyup', VideoElementUp],
+    ['book', VideoElementUp],
+]);
+//////////////////////
 
 //fans of pc
 const xAxisFans = []; //front fans
@@ -198,10 +307,20 @@ let gameboyScreenBody = null;
 let gameboyScreen = null;
 
 // Function to enter showcase mode - just zooms in
+
 function enterShowcaseMode(object) {
     if (showcaseMode) return;
     
     showcaseMode = true;
+    
+    // Start playing the appropriate video
+    for (const [key, video] of showcaseVideos) {
+        if (object.name.toLowerCase().includes(key)) {
+            video.currentTime = 0;
+            video.play();
+            break;
+        }
+    }
     
     // Determine which objects to showcase
     let objectsToShowcase = [];
@@ -282,9 +401,16 @@ function enterShowcaseMode(object) {
     showShowcaseUI();
 }
 
+
 // Function to exit showcase mode
 function exitShowcaseMode() {
     if (!showcaseMode) return;
+    
+    // Stop and reset all showcase videos
+    for (const video of showcaseVideos.values()) {
+        video.pause();
+        video.currentTime = 0;
+    }
     
     // Animate camera back to original position
     gsap.to(camera.position, {
@@ -445,6 +571,31 @@ loader.load("/models/portfolio_compressed-models.glb", (glb)=>
                     child.material = glassMaterial;
             }
             
+            else if(child.name.includes("monitorup_Raycast_Showcase")){
+                child.material = new THREE.MeshBasicMaterial({
+                    map: VideoTextureUp,
+                });
+            }
+             else if(child.name.includes("monitorright_Raycast_Showcase")){
+                child.material = new THREE.MeshBasicMaterial({
+                    map: VideoTextureRight,
+                });
+            }
+             else if(child.name.includes("monitorleft_Raycast_Showcase")){
+                child.material = new THREE.MeshBasicMaterial({
+                    map: VideoTextureLeft,
+                });
+            }
+             else if(child.name.includes("tv_screen_Raycasted_Showcase")){
+                child.material = new THREE.MeshBasicMaterial({
+                    map: VideoTextureTV,
+                });
+            }
+             else if(child.name.includes("gameboy_screen_Raycast_Showcase")){
+                child.material = new THREE.MeshBasicMaterial({
+                    map: VideoTextureGame,
+                });
+            }
             // Store the hat
             if(child.name.includes("Hat")){
                 hat = child;
@@ -500,6 +651,7 @@ loader.load("/models/portfolio_compressed-models.glb", (glb)=>
                 aboutWire = child;
                 child.userData.initialPosition = new THREE.Vector3().copy(child.position);
             }
+           
             
             if(child.name.includes("fan")){
                 if (child.name.includes("front")){
