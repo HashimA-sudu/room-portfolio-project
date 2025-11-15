@@ -145,8 +145,10 @@ document.querySelectorAll(".modal-exit-button").forEach(button=>{
     }, {passive:true}
     )
 });
-
+let modalShown = false
 const showModal = (modal) => {
+    if(modalShown) return;
+    modalShown = true
     modal.style.display = "block";
 
     gsap.set(modal, {opacity:0});
@@ -157,7 +159,7 @@ const showModal = (modal) => {
 
 };
 const hideModal = (modal) => {
-
+    modalShown = false
     gsap.set(modal, {opacity:1});
     gsap.to(modal, {
         opacity:0,
@@ -310,6 +312,7 @@ let gameboyScreen = null;
 
 function enterShowcaseMode(object) {
     if (showcaseMode) return;
+    if(modalShown) return;
     
     showcaseMode = true;
     
@@ -486,7 +489,8 @@ function hideShowcaseUI() {
 
 /////////////////////////////////////////
 function handleRaycasterInteraction(){
-    if(currentIntersects.length>0){
+    
+    if(currentIntersects.length>0 && modalShown == false){
         const object = currentIntersects[0].object;
         Object.entries(Links).forEach(([key,url]) =>{ //for links
              if(object.name.includes(key)){ // if contains links keys
@@ -957,7 +961,7 @@ function playSignAnimation(object, isHovering){
 
 function playHoverAnimation(object, isHovering){
     gsap.killTweensOf(object.scale);
-    if(showcaseMode){
+    if(showcaseMode || modalShown){
         gsap.to(object.scale, 
         {
             x: object.userData.initialScale.x, 
@@ -1096,7 +1100,7 @@ const render = () =>{
         const currentIntersectObject = currentIntersects[0].object;
 
         // Handle sign animations separately
-        if(currentIntersectObject.name.includes("sign")){
+        if(currentIntersectObject.name.includes("sign")&& modalShown == false){
             if(currentIntersectObject!==currentHoverObject){
                 if(currentHoverObject) {
                     if(currentHoverObject.name.includes("sign")){
@@ -1109,7 +1113,7 @@ const render = () =>{
                 currentHoverObject = currentIntersectObject;
             }
         }
-        else if(currentIntersectObject.name.includes("Hover")){
+        else if(currentIntersectObject.name.includes("Hover" && modalShown == false)){
             if(currentIntersectObject!==currentHoverObject){
                 if(currentHoverObject) {
                     if(currentHoverObject.name.includes("sign")){
@@ -1123,7 +1127,7 @@ const render = () =>{
             }
         }
         
-
+        if(modalShown == false){ //all will be default if modal is currently active
         if(currentIntersectObject.name.includes("Showcase")){ //showcase objects
         document.body.style.cursor = "pointer";
         }
@@ -1148,6 +1152,7 @@ const render = () =>{
         else if(currentIntersectObject.name.includes("email")) { // 
         document.body.style.cursor = "pointer";
         }
+    }
         else
         {        
             document.body.style.cursor = "default";    
