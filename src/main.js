@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import './style.scss'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OrbitControls } from './utils/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { GLTFExporter, ThreeMFLoader } from 'three/examples/jsm/Addons.js';
@@ -149,6 +149,7 @@ let modalShown = false
 const showModal = (modal) => {
     if(modalShown) return;
     modalShown = true
+    controls.enabled = false;
     modal.style.display = "block";
 
     gsap.set(modal, {opacity:0});
@@ -160,6 +161,7 @@ const showModal = (modal) => {
 };
 const hideModal = (modal) => {
     modalShown = false
+    controls.enabled = true;
     gsap.set(modal, {opacity:1});
     gsap.to(modal, {
         opacity:0,
@@ -307,15 +309,46 @@ let previousCameraPosition = new THREE.Vector3();
 let previousControlsTarget = new THREE.Vector3();
 let gameboyScreenBody = null;
 let gameboyScreen = null;
-
 // Function to enter showcase mode - just zooms in
 
 function enterShowcaseMode(object) {
-    if (showcaseMode) return;
-    if(modalShown) return;
+    if (showcaseMode || modalShown) return;
     
     showcaseMode = true;
-    
+    gsap.killTweensOf(object);
+    if(object.name.includes("Hover")){
+        gsap.to(object.scale, 
+        {
+            x: object.userData.initialScale.x, 
+            y: object.userData.initialScale.y,
+            z: object.userData.initialScale.z,
+            duration:0.2,
+            ease: "power1.out(1.5)",
+        });
+        gsap.to(object.position, 
+        {
+            x: object.userData.initialPosition.x, 
+            y: object.userData.initialPosition.y, 
+            z: object.userData.initialPosition.z, 
+            duration:0.2,
+            ease: "power1.out(1.5)",
+            
+        });
+    }
+   
+    if( object.name.includes("tv")|| object.name.includes("book")|| object.name.includes("casette")) {
+        
+    controls.maxPolarAngle = Math.PI/2;
+    controls.maxAzimuthAngle = Math.PI;
+    }
+    // if( object.name.includes("monitor")) {
+    //     controls.minDistance = 6;
+    //     controls.maxDistance = 6;
+    // }
+   
+        
+   controls.disablePanLimits();
+
     // Start playing the appropriate video
     for (const [key, video] of showcaseVideos) {
         if (object.name.toLowerCase().includes(key)) {
@@ -369,12 +402,18 @@ function enterShowcaseMode(object) {
     });
     
     const center = combinedBox.getCenter(new THREE.Vector3());
+
     const size = combinedBox.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
     
     // Calculate optimal camera distance
     const fov = camera.fov * (Math.PI / 180);
-    const cameraDistance = Math.abs(maxDim / Math.sin(fov / 2)) *1;
+    let cameraDistance = Math.abs(maxDim / Math.sin(fov / 2)) *2;
+
+    if (object.name.includes("monitor_screen_Raycast_Showcase")){
+        cameraDistance = Math.abs(maxDim / Math.sin(fov / 2)) *1;
+    }
+
     
     // Calculate camera position (offset from center)
     const direction = new THREE.Vector3()
@@ -398,9 +437,12 @@ function enterShowcaseMode(object) {
         y: center.y,
         z: center.z,
         duration: 1,
-        ease: "power2.inOut"
+        ease: "power2.inOut",
+        onComplete: () => {
+        controls.setPanLimitsAroundObject(center, 0);
+
+        }
     });
-    
     showShowcaseUI();
 }
 
@@ -408,13 +450,18 @@ function enterShowcaseMode(object) {
 // Function to exit showcase mode
 function exitShowcaseMode() {
     if (!showcaseMode) return;
-    
+    controls.maxDistance = 40;
+        
+    controls.maxPolarAngle = Math.PI/2.5;
+    controls.maxAzimuthAngle = Math.PI/2;
+    controls.disablePanLimits();
     // Stop and reset all showcase videos
     for (const video of showcaseVideos.values()) {
         video.pause();
         video.currentTime = 0;
     }
     
+
     // Animate camera back to original position
     gsap.to(camera.position, {
         x: previousCameraPosition.x,
@@ -428,15 +475,18 @@ function exitShowcaseMode() {
         x: previousControlsTarget.x,
         y: previousControlsTarget.y,
         z: previousControlsTarget.z,
-        duration: 1,
+        duration: 1.2,
         ease: "power2.inOut",
         onComplete: () => {
             // Clean up
+            controls.restorePanLimits();
+
             showcaseMode = false;
             showcasedObjects = [];
             
             // Hide showcase UI
             hideShowcaseUI();
+
         }
     });
 }
@@ -471,9 +521,11 @@ function showShowcaseUI() {
             exitButton.style.background = 'rgba(0, 0, 0, 0.7)';
         });
         exitButton.addEventListener('click', exitShowcaseMode);
+        exitButton.addEventListener('touchend', exitShowcaseMode);
         document.body.appendChild(exitButton);
     }
     exitButton.style.display = 'block';
+
 }
 
 function hideShowcaseUI() {
@@ -533,6 +585,7 @@ window.addEventListener("mousemove", (e)=>
 
 window.addEventListener("touchstart", (e)=>
 {
+    if(modalShown) return;
     e.preventDefault();
     pointer.x = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
     pointer.y = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
@@ -540,6 +593,7 @@ window.addEventListener("touchstart", (e)=>
 
 window.addEventListener("touchend", (e)=>
 {
+    if(modalShown) return;
     e.preventDefault();
     handleRaycasterInteraction();
 },{passive: false});
@@ -716,6 +770,16 @@ const controls = new OrbitControls( camera, renderer.domElement );
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.target.set(2.978904510135682,2.7952939833198513 ,-6.329682566513317); 
+
+//set control limitations
+controls.minPolarAngle = 0;
+controls.minAzimuthAngle = 0;
+controls.maxPolarAngle = Math.PI/2.5;
+controls.maxAzimuthAngle = Math.PI/2;
+controls.minDistance = 1;
+controls.maxDistance = 40;
+
+
 
 // event listeners
 window.addEventListener("resize", ()=>{
@@ -961,7 +1025,7 @@ function playSignAnimation(object, isHovering){
 
 function playHoverAnimation(object, isHovering){
     gsap.killTweensOf(object.scale);
-    if(showcaseMode || modalShown){
+    if(showcaseMode && !object.name.includes("Link") || modalShown){
         gsap.to(object.scale, 
         {
             x: object.userData.initialScale.x, 
@@ -979,15 +1043,15 @@ function playHoverAnimation(object, isHovering){
             ease: "power1.out(1.5)",
             
         });
-        return
+        
     }
+
     gsap.killTweensOf(object.position);
     gsap.killTweensOf(object.rotation);
-    if(showcaseMode) return;
     if(object.userData.isAnimating==true) return;
-
+    if (showcaseMode && !object.name.includes("Link")) return;
     if(isHovering){
-        if(object.name.includes("email") || object.name.includes("github")){
+        if(object.name.includes("email") || object.name.includes("github") ||object.name.includes("Link")){
             gsap.to(object.scale, 
         {
             x: object.userData.initialScale.x*1.07, 
@@ -1113,7 +1177,7 @@ const render = () =>{
                 currentHoverObject = currentIntersectObject;
             }
         }
-        else if(currentIntersectObject.name.includes("Hover" && modalShown == false)){
+        else if(currentIntersectObject.name.includes("Hover") && modalShown == false){
             if(currentIntersectObject!==currentHoverObject){
                 if(currentHoverObject) {
                     if(currentHoverObject.name.includes("sign")){
@@ -1126,36 +1190,35 @@ const render = () =>{
                 currentHoverObject = currentIntersectObject;
             }
         }
+
         
-        if(modalShown == false){ //all will be default if modal is currently active
-        if(currentIntersectObject.name.includes("Showcase")){ //showcase objects
-        document.body.style.cursor = "pointer";
+       
+      
+        if(modalShown == false && showcaseMode==false){ //all will be default if modal is currently active or in showcase mode
+            if(currentIntersectObject.name.includes("Showcase")){ //showcase objects
+            document.body.style.cursor = "pointer";
+            }
+            else if (currentIntersectObject.name.includes("sign")) { // signs
+            document.body.style.cursor = "pointer";
+            }
+            else if (currentIntersectObject.name.includes("chair")) { // rotating chair
+            document.body.style.cursor = "pointer";
+            }
+            else if(currentIntersectObject.name.includes("github")) { // 
+            document.body.style.cursor = "pointer";
+            }
+            else if(currentIntersectObject.name.includes("COOP")) { // 
+            document.body.style.cursor = "pointer";
         }
-        else if (currentIntersectObject.name.includes("sign")) { // signs
-        document.body.style.cursor = "pointer";
         }
-        else if (currentIntersectObject.name.includes("chair")) { // rotating chair
-        document.body.style.cursor = "pointer";
-        }
-        else if(currentIntersectObject.name.includes("github")) { // 
-        document.body.style.cursor = "pointer";
-        }
-        else if(currentIntersectObject.name.includes("COOP")) { // 
-        document.body.style.cursor = "pointer";
-        }
-        else if(currentIntersectObject.name.includes("movies")) { // 
-        document.body.style.cursor = "pointer";
-        }
-        else if(currentIntersectObject.name.includes("japaneseLink")) { // 
-        document.body.style.cursor = "pointer";
-        }
-        else if(currentIntersectObject.name.includes("email")) { // 
-        document.body.style.cursor = "pointer";
-        }
-    }
         else
         {        
+              if(currentIntersectObject.name.includes("Link")) { // links to repository of each project
+                    document.body.style.cursor = "pointer";
+        }
+        else{
             document.body.style.cursor = "default";    
+        }
         }
 
     
