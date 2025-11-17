@@ -128,30 +128,35 @@ let chair = null;
 let acWind = null;
 let acActive = 0;
 
-
 let touchHappened = false;
 document.querySelectorAll(".modal-exit-button").forEach(button=>{
     button.addEventListener("touchend", (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
         touchHappened = true;
         const modal = e.target.closest(".modal");
         hideModal(modal);
-    }, {passive:true}
-    )
+    }, {passive: false})
 
     button.addEventListener("click", (e)=>{
-        if(touchHappened) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if(touchHappened) {
+            touchHappened = false;
+            return;
+        }
         const modal = e.target.closest(".modal");
         hideModal(modal);
-    }, {passive:true}
-    )
+    })
 });
+
 let modalShown = false
 const showModal = (modal) => {
     if(modalShown) return;
     modalShown = true
     controls.enabled = false;
     modal.style.display = "block";
-
+   
     gsap.set(modal, {opacity:0});
     gsap.to(modal, {
         opacity:1,
@@ -269,8 +274,10 @@ VideoElementTV.src = "./textures/videos/movies_video.mp4";
 VideoElementTV.loop = true;
 VideoElementTV.muted = true;
 VideoElementTV.playsInline = true;
-VideoElementTV.autoplay = false; // Changed to false
+VideoElementTV.autoplay = true; 
 VideoElementTV.currentTime = 0;
+VideoElementTV.play();
+
 
 const VideoTextureTV = new THREE.VideoTexture(VideoElementTV);
 VideoTextureTV.colorSpace = THREE.SRGBColorSpace;
@@ -278,14 +285,14 @@ VideoTextureTV.flipY = false;
 VideoTextureTV.center.set(0.5, 0.5);
 VideoTextureTV.rotation = (Math.PI / 2);
 VideoTextureTV.repeat.set(1.3,1.3);
-VideoTextureTV.offset.set(0.18, -0.1);
+VideoTextureTV.offset.set(0.3, -0.1);
 
 const showcaseVideos = new Map([
     ['monitorup', VideoElementUp],
     ['monitorleft', VideoElementLeft],
+    ['tv_screen', VideoElementLeft],
     ['monitorright', VideoElementRight],
     ['gameboy_screen', VideoElementGame],
-    ['tv_screen', VideoElementTV],
     ['stickyright', VideoElementRight],
     ['stickyleft', VideoElementLeft],
     ['casette', VideoElementLeft],
@@ -336,7 +343,7 @@ function enterShowcaseMode(object) {
         });
     }
    
-    if( object.name.includes("tv")|| object.name.includes("book")|| object.name.includes("casette")) {
+    if( object.name.includes("tv")|| object.name.includes("book")|| object.name.includes("casette") || object.name.includes("monitorleft") ||object.name.includes("monitorup")) {
         
     controls.maxPolarAngle = Math.PI/2;
     controls.maxAzimuthAngle = Math.PI;
@@ -460,7 +467,7 @@ function exitShowcaseMode() {
         video.pause();
         video.currentTime = 0;
     }
-    
+    controls.disablePanLimits();
 
     // Animate camera back to original position
     gsap.to(camera.position, {
@@ -601,13 +608,14 @@ window.addEventListener("touchend", (e)=>
 
 //clicking on showcase objs or github/email
 window.addEventListener("click", handleRaycasterInteraction);
-
+let initialAnimationObjs = []
 //traversing children
 loader.load("/models/portfolio_compressed-models.glb", (glb)=>
 { 
     glb.scene.traverse(child=>{
         
         if(child.isMesh){
+                
             
             if(child.name.includes("Raycast")) {
                 raycasterObjects.push(child);
@@ -725,6 +733,16 @@ loader.load("/models/portfolio_compressed-models.glb", (glb)=>
             // Debug: Log all mesh names to console
              if (!child.name.includes("leaf")){console.log("Mesh found:", child.name);}
             
+            if(child.name.includes("Hover") ||child.name.includes("sign") ||child.name.includes("light") ||child.name.includes("wire") ||child.name.includes("hanging") ||child.name.includes("pizza") ||child.name.includes("ps") || child.name.includes("controller")||child.name.includes("japanese")||child.name.includes("gameboy")||child.name.includes("speaker")||child.name.includes("casette")){                child.userData.initialScale = new THREE.Vector3().copy(child.scale);
+                
+                child.userData.initialPosition = new THREE.Vector3().copy(child.position);     
+                child.scale.x = 0;       
+                child.scale.y = 0;       
+                child.scale.z = 0;    
+                initialAnimationObjs.push(child);   
+
+            }
+
             Object.keys(TextureMap).forEach(keys=> { // assign materials
                 if (child.name.includes(keys)) 
                     {
@@ -748,17 +766,29 @@ loader.load("/models/portfolio_compressed-models.glb", (glb)=>
 
     })
     scene.add(glb.scene);
-
+    playInitialAnimation()
 });
+
+function playInitialAnimation(){
+    const t1 = gsap.timeline({
+        ease: "back.out(1.5)",
+    })
+    
+    for(let x = 0; x < initialAnimationObjs.length; x++){
+        t1.to(initialAnimationObjs[x].scale, {
+            x: initialAnimationObjs[x].userData.initialScale.x, 
+            y: initialAnimationObjs[x].userData.initialScale.y, 
+            z: initialAnimationObjs[x].userData.initialScale.z,  
+            duration: 0.4,  // Move duration here for each animation
+        }, x * 0.05)  
+    }
+}
 
 const camera = new THREE.PerspectiveCamera( 
     35,
     sizes.width / sizes.height,
     0.1,
     1000);
-//default camera position
-camera.position.set(27.751215392472087,9.279443596422004, 8.730269582361316);
-
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
 renderer.setSize( sizes.width, sizes.height );
@@ -766,10 +796,28 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 
 camera.position.z = 5;
 
+
 const controls = new OrbitControls( camera, renderer.domElement );
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
-controls.target.set(2.978904510135682,2.7952939833198513 ,-6.329682566513317); 
+
+// Set controls target based on device
+if(isMobileDevice()) {
+    // Mobile target - adjust to focus on main area
+    camera.position.set(35, 12, 15);
+    controls.target.set(0, 3, -5);
+} else {
+    // Desktop target
+    controls.target.set(2.978904510135682, 2.7952939833198513, -6.329682566513317);
+    camera.position.set(27.751215392472087, 9.279443596422004, 8.730269582361316);
+
+}
+
+// Device detection
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+        || window.innerWidth <= 768;
+}
 
 //set control limitations
 controls.minPolarAngle = 0;
@@ -789,6 +837,13 @@ window.addEventListener("resize", ()=>{
     camera.updateProjectionMatrix();
     renderer.setSize( sizes.width, sizes.height );
     renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    
+    // Update camera position on orientation change for mobile
+    if(isMobileDevice()) {
+        camera.position.set(35, 12, 15);
+        controls.target.set(0, 3, -5);
+    }
+    
     controls.update();
 })
 
@@ -1115,9 +1170,9 @@ function playRotation(str="chair"){
 }
 const render = () =>{
     controls.update();
-    // console.log(camera.position);
-    // console.log("------");
-    // console.log(controls.target);
+    console.log(camera.position);
+    console.log("------");
+    console.log(controls.target);
 
     //fans rotation (yes this is correctly implemented)
     zAxisFans.forEach((fan)=>{
@@ -1205,6 +1260,9 @@ const render = () =>{
             document.body.style.cursor = "pointer";
             }
             else if(currentIntersectObject.name.includes("github")) { // 
+            document.body.style.cursor = "pointer";
+            }
+            else if(currentIntersectObject.name.includes("email")) { // 
             document.body.style.cursor = "pointer";
             }
             else if(currentIntersectObject.name.includes("COOP")) { // 

@@ -12,8 +12,8 @@ import {
 } from 'three';
 //y is the third var,
 //z is second 
-let minPan = new Vector3(-1, 2, -13);
-let maxPan = new Vector3(-1, 5, -1);
+let minPan = new Vector3(-2, 2, -13);
+let maxPan = new Vector3(3, 8, 5);
 let originalMinPan = minPan.clone();
 let originalMaxPan = maxPan.clone();
 
