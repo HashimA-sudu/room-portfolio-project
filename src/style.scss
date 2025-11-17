@@ -52,9 +52,10 @@
   border-radius: 48px;
 }
 
-.loading-screen-button {
+.loading-screen-button, .no-sound-button {
   font-family: "Michroma";
-  background-color: transparent;
+
+  background-color: vars.$base-black;
   padding: 10px 40px;
   outline: none;
   color: vars.$base-black;
@@ -67,14 +68,9 @@
 }
 
 .no-sound-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  background: transparent;
-  color: vars.$base-black;
-  border: none;
-  cursor: pointer;
-  text-decoration: underline;
-  display: none;
+  font-size: 24px;
+  padding: 8px 24px;
+  padding-top: 0%;
 }
 
 // Modal styles

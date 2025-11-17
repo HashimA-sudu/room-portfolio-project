@@ -278,15 +278,26 @@ function setupLoadingScreenButton() {
 
     // Style the button to show it's ready
     loadingScreenButton.textContent = "Enter!";
-    loadingScreenButton.style.border = "8px solid #67809a";
-    loadingScreenButton.style.background = "#401d49";
-    loadingScreenButton.style.color = "#e6dede";
+    loadingScreenButton.style.border = "8px solid #3d5166ff";
+    loadingScreenButton.style.background = "#67809a";
+    loadingScreenButton.style.color = "#3d5166ff";
+    loadingScreenButton.style.paddingTop = "1px";
     loadingScreenButton.style.boxShadow = "rgba(0, 0, 0, 0.24) 0px 3px 8px";
     loadingScreenButton.style.cursor = "pointer";
     loadingScreenButton.style.pointerEvents = "auto";
     loadingScreenButton.style.transition = "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
 
-    noSoundButton.textContent = "Enter without sound";
+    noSoundButton.textContent = "Enter without music";
+    noSoundButton.style.border = "8px solid #3d5166ff";
+    noSoundButton.style.background = "#67809a";
+    noSoundButton.style.color = "#3d5166ff";
+    noSoundButton.style.paddingTop = "1px";
+    noSoundButton.style.boxShadow = "rgba(0, 0, 0, 0.24) 0px 3px 8px";
+    noSoundButton.style.cursor = "pointer";
+    noSoundButton.style.pointerEvents = "auto";
+    noSoundButton.style.transition = "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
+
+
     noSoundButton.style.display = "block";
 
     let isDisabled = false;
@@ -298,21 +309,30 @@ function setupLoadingScreenButton() {
         console.log("Entering experience...");
 
         if (noSoundButton) {
-            noSoundButton.textContent = "Mute";
+            noSoundButton.textContent = "Enter without music";
         }
         loadingScreenButton.style.cursor = "default";
-        loadingScreenButton.style.border = "8px solid #6e5e9c";
-        loadingScreenButton.style.background = "#ead7ef";
-        loadingScreenButton.style.color = "#6e5e9c";
+        noSoundButton.style.cursor = "default";
+        loadingScreenButton.style.border = "8px solid #3d5166ff";
+        loadingScreenButton.style.background = "#67809a";
+        loadingScreenButton.style.color = "#3d5166ff";
         loadingScreenButton.style.boxShadow = "none";
         loadingScreenButton.textContent = "~ Welcome ~";
-        loadingScreen.style.background = "#ead7ef";
+        noSoundButton.textContent = "~ To Hashim's Room ~";
+        loadingScreen.style.background = "#67809a";
+        loadingScreen.style.border = "8px solid #3d5166ff";
 
         playReveal();
     }
 
     loadingScreenButton.addEventListener("mouseenter", () => {
         loadingScreenButton.style.transform = "scale(1.1)";
+    });
+    noSoundButton.addEventListener("mouseenter", () => {
+        noSoundButton.style.transform = "scale(1.1)";
+    });
+    noSoundButton.addEventListener("mouseleave", () => {
+        noSoundButton.style.transform = "none";
     });
 
     loadingScreenButton.addEventListener("touchend", (e) => {
