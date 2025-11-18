@@ -70,7 +70,7 @@ const TextureMap = {
 };
 
 const environmentMap = new THREE.CubeTextureLoader(manager);
-environmentMap.setPath("/textures/skybox/");
+environmentMap.setPath("./textures/skybox/");
 
 const loadedTextures = { day: {} };
 
@@ -83,9 +83,9 @@ Object.entries(TextureMap).forEach(([key, paths]) => {
     loadedTextures.day[key] = TextureDay;
 });
 const envTexture = environmentMap.load([
-    "px.jpg", "nx.jpg",
-    "py.jpg", "ny.jpg",
-    "pz.jpg", "nz.jpg"
+    "px.webp", "nx.webp",
+    "py.webp", "ny.webp",
+    "pz.webp", "nz.webp"
 ]);
 envTexture.colorSpace = THREE.SRGBColorSpace;
 
@@ -263,6 +263,7 @@ const showcaseVideos = new Map([
 ]);
 
 // ========== LOADING SCREEN FUNCTIONS ==========
+let initialFinished = false;
 function setupLoadingScreenButton() {
     const loadingScreen = document.querySelector(".loading-screen");
     const loadingScreenButton = document.querySelector(".loading-screen-button");
@@ -391,9 +392,14 @@ function playReveal() {
 }
 
 function startExperience() {
+    console.log("InitialFinished set to:"+initialFinished);
     console.log("Starting experience...");
     playInitialAnimation();
+    console.log("Initial animation finished.");
+    initialFinished = true;
+    console.log("InitialFinished set to:"+initialFinished);
 }
+
 
 // ========== MODAL FUNCTIONS ==========
 document.querySelectorAll(".modal-exit-button").forEach(button => {
@@ -447,7 +453,7 @@ const hideModal = (modal) => {
 // ========== SHOWCASE MODE FUNCTIONS ==========
 
 function enterShowcaseMode(object) {
-    if (showcaseMode || modalShown) return;
+    if (showcaseMode || modalShown|| !initialFinished) return;
     
     showcaseMode = true;
     gsap.killTweensOf(object);
@@ -836,7 +842,9 @@ function playInitialAnimation() {
             y: initialAnimationObjs[x].userData.initialScale.y,
             z: initialAnimationObjs[x].userData.initialScale.z,
             duration: 0.4,
+            
         }, x * 0.05);
+
     }
 }
 
@@ -1238,6 +1246,13 @@ const render = () => {
     if (acWind) {
         // Simplified AC wind rotation - you can improve this
         acWind.rotation.y += 0.01;
+        acWind.rotation.y += 0.01;
+        acWind.rotation.y += 0.01;
+        acWind.rotation.y += 0.01;
+        acWind.rotation.y -= 0.01;
+        acWind.rotation.y -= 0.01;
+        acWind.rotation.y -= 0.01;
+        acWind.rotation.y -= 0.01;
     }
 
     // Raycaster
@@ -1281,15 +1296,13 @@ const render = () => {
                 currentIntersectObject.name.includes("chair") ||
                 currentIntersectObject.name.includes("github") ||
                 currentIntersectObject.name.includes("email") ||
-                currentIntersectObject.name.includes("COOP")) {
+                currentIntersectObject.name.includes("COOP")||
+                currentIntersectObject.name.includes("Link")) {
                 document.body.style.cursor = "pointer";
             }
         } else {
-            if (currentIntersectObject.name.includes("Link")) {
-                document.body.style.cursor = "pointer";
-            } else {
-                document.body.style.cursor = "default";
-            }
+            document.body.style.cursor = "default";
+           
         }
     } else {
         if (currentHoverObject) {

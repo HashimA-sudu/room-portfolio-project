@@ -76,6 +76,12 @@
 // Modal styles
 .modal {
   position: fixed;
+  display: flex;
+  flex-direction: column;
+  border-style: inset;
+  border: 4px solid #2e367e;
+  padding: auto;
+  border-radius: 4px; 
   top: 50%;
   left: 50%;
   color: black;
@@ -88,20 +94,31 @@
   max-width: 90vw;
   max-height: 90vh;
   overflow-y: scroll;
-  border-radius: 8px;
-  border-color: white;
-  border-style: outset;
+  scrollbar-color: #3d5166ff transparent;
+  scrollbar-width: thick;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  border-color: #3d5166ff;
+  border-style: solid;
 
   .modal-content {
+    flex: 1;
     display: flex;
+    padding-right: 10px;
+    overflow-y: scroll;
     flex-direction: column;
     gap: 20px;
   }
 
+
   .modal-title {
     font-size: clamp(18px, 5vw, 32px);
     word-wrap: break-word;
-    align-items: center;
+    text-align: center;
+    position: relative;
+    padding-top: 10px;
+    margin-bottom: 10px;
+
     font-family: "Michroma", system-ui, -apple-system, BlinkMacSystemFont,
       "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
       "Helvetica Neue", sans-serif;
@@ -131,20 +148,27 @@
   }
 
   .modal-exit-button {
+    font-family: "Michroma", system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+      "Helvetica Neue", sans-serif;
+    position: absolute;
+    top: 3px;
+    left: 14px;
     padding: 10px 20px;
     font-size: 16px;
+    width: fit-content;
+    padding-top: 5px;
+    margin-top: 7px;
     cursor: pointer;
     background-color: #67809a75;
-    color: white;
-    border: 2px solid white;
-    border-radius: 4px;
-    align-self: flex-end;
-    margin-top: auto;
-    
+    color: #3d5166ff;
+    border: 5px solid #3d5166ff;
+    border-radius: 17px;
+    z-index: 99999999;
+
     &:hover {
-      background-color: #555;
+      background-color: rgba(47, 82, 120, 0.314);
     }
   }
   
-
 }
