@@ -423,6 +423,7 @@ document.querySelectorAll(".modal-exit-button").forEach(button => {
     });
 });
 
+
 const showModal = (modal) => {
     if (modalShown || !modal) return;
     modalShown = true;
@@ -449,6 +450,44 @@ const hideModal = (modal) => {
         }
     });
 };
+
+// ========== RAYCASTER INTERACTION ==========
+function handleRaycasterInteraction(){
+    
+    if(currentIntersects.length>0 && modalShown == false){
+        const object = currentIntersects[0].object;
+        Object.entries(Links).forEach(([key,url]) =>{ //for links
+             if(object.name.includes(key)){ // if contains links keys
+                const newWindow = window.open();
+                newWindow.opener = null;
+                newWindow.location = url;
+                newWindow.target = "_blank";
+                newWindow.rel = "noopener noreferrer";
+            }
+            else if(object.name.includes("Showcase")){
+                if (!showcaseMode ) {
+                        enterShowcaseMode(object);
+                    }
+            }
+            else if(object.name.includes("chair_thirdT_Raycast_rotation")){
+                playRotation("chair");
+            }
+            else if(object.name.includes("ac_wind_secondT_Raycast_backandforth")){
+                playRotation("acWind");
+            }
+
+        } 
+        ); // object entries end
+        if(object.name.includes("about_sign")) {
+            showModal(modals.about);
+        }else if(object.name.includes("projects_sign")) {
+            showModal(modals.projects);
+        }else if(object.name.includes("education_sign")) {
+            showModal(modals.education);
+        }
+    }
+}
+
 
 // ========== SHOWCASE MODE FUNCTIONS ==========
 
@@ -1095,51 +1134,19 @@ function playHoverAnimation(object, isHovering) {
     }
 }
 
-function playRotation(str = "chair") {
+function playRotation(str="chair"){
     gsap.killTweensOf(chair.rotation);
     gsap.killTweensOf(acWind.rotation);
-    
-    if (str == "chair") {
-        if (chair.userData.isAnimating == true) return;
-        gsap.to(chair.rotation, {
-            y: chair.userData.initialRotation.y + 0.7,
-            duration: 0.8,
+    if(str=="chair"){
+        if(chair.userData.isAnimating==true) return;
+            gsap.to(chair.rotation, 
+        {
+            y: chair.userData.initialRotation.y+=0.7, 
+            duration:0.8,
             ease: "back.out(0.3)",
         });
     }
-}
-
-// ========== RAYCASTER INTERACTION ==========
-function handleRaycasterInteraction() {
-    if (currentIntersects.length > 0 && modalShown == false) {
-        const object = currentIntersects[0].object;
-        
-        Object.entries(Links).forEach(([key, url]) => {
-            if (object.name.includes(key)) {
-                const newWindow = window.open();
-                newWindow.opener = null;
-                newWindow.location = url;
-                newWindow.target = "_blank";
-                newWindow.rel = "noopener noreferrer";
-            } else if (object.name.includes("Showcase")) {
-                if (!showcaseMode) {
-                    enterShowcaseMode(object);
-                }
-            } else if (object.name.includes("chair_thirdT_Raycast_rotation")) {
-                playRotation("chair");
-            } else if (object.name.includes("ac_wind_secondT_Raycast_backandforth")) {
-                playRotation("acWind");
-            }
-        });
-
-        if (object.name.includes("about_sign")) {
-            showModal(modals.about);
-        } else if (object.name.includes("projects_sign")) {
-            showModal(modals.projects);
-        } else if (object.name.includes("education_sign")) {
-            showModal(modals.education);
-        }
-    }
+    
 }
 
 // ========== EVENT LISTENERS ==========
