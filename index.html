@@ -11,61 +11,73 @@
     <div class="loading-screen">
       <button class="loading-screen-button">Loading...</button>
       <button class="no-sound-button" style="display: none;">Enter without sound</button>
+      <p class="random-tips"></p>
     </div>
 
+    <!-- About Modal - Terminal Style -->
     <div class="about modal">
-      <button class="modal-exit-button">exit</button>
-      <h1 class="modal-title">About Me</h1>
+      <button class="modal-exit-button">[ X ]</button>
+      <h1 class="modal-title">ABOUT_ME.exe</h1>
       <div class="modal-contents">
         <br>
-      <p class="modal-paragraph">Hi! I'm Hashim Alshawaf, a full stack computer science student at King Faisal University with a big passion in learning, 
-        particularly in Artificial Intelligence, Machine Learning, video game development, the Japanese language, and more!
+        <p class="modal-paragraph">$ whoami</p>
+        <p class="modal-paragraph">Hi! I'm Hashim Alshawaf, a full stack computer science student at King Faisal University with a passion for learning, particularly in Artificial Intelligence, Machine Learning, video game development, the Japanese language, and more!</p>
         <br>
+        <p class="modal-paragraph">$ cat contact.txt</p>
+        <p class="modal-paragraph">I'm currently seeking an internship opportunity by January. Interested companies may reach me at: HashimHamadAlshawaf(at)gmail(dot)com</p>
         <br>
-        I'm currently working on getting an internship by January, any interested company may contact me by email at HashimHamadAlshawaf(at)gmail(dot)com</p>
-      <br>
-      <p class="modal-paragraph">This project was heavily inspired by Andrew Woan's Room Portfolio video <a href="https://www.youtube.com/watch?v=AB6sulUMRGE" target="_blank">(you can watch it here)</a></p>
-      <br>
-      <p class="modal-paragraph">Was this a hard project? Needless to say, yes it was. Modeling, adjusting UV maps and unwrapping, baking, rebaking. All of these were areas outside my
-      expertise and had to debug by myself. So of course it was hard. </p>
-      <br>
-      <p class="modal-paragraph">But it was pretty fun once I got the hang of it. The hard part was the beginning and making sure to continue working on this project.
+        <p class="modal-paragraph">$ ls inspirations/</p>
+        <p class="modal-paragraph">This project was heavily inspired by Andrew Woan's Room Portfolio video <a href="https://www.youtube.com/watch?v=AB6sulUMRGE" target="_blank">(watch it here)</a></p>
         <br>
+        <p class="modal-paragraph">$ ./thoughts.sh --difficulty</p>
+        <p class="modal-paragraph">Was this hard? Absolutely. Modeling, UV mapping, unwrapping, baking, debugging—all outside my expertise. But once I got the hang of it, it became genuinely fun.</p>
         <br>
-        Would I recommend someone try to do this project? Absolutely! this gives you experience in some great programs and makes you self reliant!
-      </p>
+        <p class="modal-paragraph">$ echo "Would I recommend this project?"</p>
+        <p class="modal-paragraph">> Yes! It teaches you invaluable skills and self-reliance. The hardest part is starting and staying consistent.</p>
+        <br>
+        <p class="modal-paragraph">_</p>
       </div>
     </div>
 
+    <!-- Projects Modal - Glass Card Style -->
     <div class="modal projects">
-      <button class="modal-exit-button">exit</button>
-      <div class="modal-contents">
+      <button class="modal-exit-button">Close</button>
       <h1 class="modal-title">Projects</h1>
-        <h2 class="modal-title">Quick Japanese Lookup</h2>
-        <p class="modal-paragraph">Created a Chrome extension that enables users to look up unfamiliar Japanese words, complete with
-          a feature that enables the addition of those words to Anki, a flashcard memorization app.</p>
-        <h2 class="modal-title">Movie Recommendation System</h2>
-        <p class="modal-paragraph">Designed and created a web scraper to gather data of movies, with a user-friendly web application
-          that enables users to find a movie they may like by searching for a previously liked movie.</p>
-        <h2 class="modal-title">AI-Powered Co-Op Recommendation System</h2>
-        <p class="modal-paragraph">Created an AI powered cooperative training recommendation system to better align with students’
-        skills.</p>
+      <div class="modal-contents">
+        <div class="project-card">
+          <h2>Quick Japanese Lookup</h2>
+          <p>Created a Chrome extension that enables users to look up unfamiliar Japanese words, complete with a feature that enables the addition of those words to Anki, a flashcard memorization app.</p>
+        </div>
+
+        <div class="project-card">
+          <h2>Movie Recommendation System</h2>
+          <p>Designed and created a web scraper to gather data on movies, with a user-friendly web application that enables users to discover movies they may like by searching for previously enjoyed films.</p>
+        </div>
+
+        <div class="project-card">
+          <h2>AI-Powered Co-Op Recommendation</h2>
+          <p>Created an AI-powered cooperative training recommendation system to better align with students' skills and career goals.</p>
+        </div>
       </div>
     </div>
 
+    <!-- Education Modal - Academic Certificate Style -->
     <div class="modal education">
-      <button class="modal-exit-button">exit</button>
+      <button class="modal-exit-button">Close</button>
       <div>
-        <h1 class="modal-title">Education</h1>
-        <h3 class="modal-title">Bachelor of Computer Science <br>Expected 2026</h3>
-      <h3 class="modal-title">in King Faisal University</h3>
+        <div class="degree-info">
+          <h1 class="modal-title">Education</h1>
+          <div class="seal">🎓</div>
+          <h3>Bachelor of Computer Science</h3>
+          <h3>Expected Graduation: 2026</h3>
+          <h3>King Faisal University</h3>
+        </div>
       </div>
     </div>
 
     <div id="experience">
-      <canvas id = "experience-canvas"></canvas>
+      <canvas id="experience-canvas"></canvas>
     </div>
-
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

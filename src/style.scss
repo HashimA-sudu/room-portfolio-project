@@ -1,6 +1,16 @@
-@use "./styles/fonts.scss";
-@use "./styles/variables.scss" as vars;
-@use "./styles/reset.scss";
+:root {
+  --primary-blue: #2c3e50;     /* Dark navy blue */
+  --secondary-blue: #34495e;   /* Medium navy */
+  --accent-blue: #3498db;      /* Bright blue */
+  --light-blue: #ecf0f1;       /* Light blue/gray */
+  --dark-blue: #1a252f;        /* Very dark blue */
+  --hover-blue: #2980b9;       /* Hover state blue */
+  --glass-blue: rgba(52, 152, 219, 0.1); /* Glass effect blue */
+  --border-blue: #3498db;      /* Border blue */
+  --text-blue: #2c3e50;        /* Text blue */
+  --paper-blue: #d6eaf8;       /* Paper-like blue */
+  --gold-accent: #f1c40f;      /* Gold for education seal */
+}
 
 * {
   margin: 0;
@@ -8,12 +18,10 @@
   box-sizing: border-box;
 }
 
-:root {
+/* BASE STYLES */
+body {
   font-family: "Michroma", sans-serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 #experience {
@@ -23,22 +31,20 @@
   top: 0;
   left: 0;
   overflow: hidden;
-  
-  #experience-canvas {
-    height: 100%;
-    width: 100%;
-  }
+}
+#experience #experience-canvas {
+  height: 100%;
+  width: 100%;
 }
 
-// Loading Screen - separate from modal
+/* LOADING SCREEN */
 .loading-screen {
   position: fixed;
   top: 50%;
   left: 50%;
   width: 108vw;
   height: 108vh;
-  margin-left: -54vw;
-  margin-top: -54vh;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -46,21 +52,19 @@
   gap: 20px;
   overflow: hidden;
   z-index: 999999;
-  background: vars.$base-blue;
-  border: 8px solid vars.$base-blue;
-  transform: perspective(1000px);
+  background: #67809a;
+  border: 8px solid var(--accent-blue);
   border-radius: 48px;
 }
 
-.loading-screen-button, .no-sound-button {
+.loading-screen-button,
+.no-sound-button {
   font-family: "Michroma";
-
-  background-color: vars.$base-blue;
+  background-color: var(--accent-blue);
   padding: 10px 40px;
-  outline: none;
-  color: vars.$base-black;
+  color: var(--light-blue);
   border-radius: 1.2rem;
-  border: 8px solid transparent;
+  border: 8px solid var(--secondary-blue);
   font-size: 42px;
   pointer-events: none;
   cursor: default;
@@ -70,105 +74,273 @@
 .no-sound-button {
   font-size: 24px;
   padding: 8px 24px;
-  padding-top: 0%;
+  padding-top: 0;
 }
 
-// Modal styles
+/* GENERIC MODAL BASE */
 .modal {
   position: fixed;
-  display: flex;
+  display: none;
   flex-direction: column;
-  border-style: inset;
-  border: 4px solid #2e367e;
-  padding: auto;
-  border-radius: 4px; 
   top: 50%;
   left: 50%;
-  color: black;
   transform: translate(-50%, -50%);
   font-size: 32px;
   z-index: 999;
-  display: none;
-  background-color: vars.$base-blue;
+  background-color: var(--primary-blue);
   padding: 20px;
   max-width: 90vw;
   max-height: 90vh;
   overflow-y: scroll;
-  scrollbar-color: #3d5166ff transparent;
+  scrollbar-color: var(--accent-blue) transparent;
   scrollbar-width: thick;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   border-radius: 20px;
-  border-color: #3d5166ff;
-  border-style: solid;
+  border: 4px solid var(--accent-blue);
+  box-shadow: 0 0 20px rgba(52, 152, 219, 0.3);
+}
+.modal-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+  gap: 20px;
+  padding-right: 10px;
+}
+.modal-title {
+  text-align: center;
+  padding-top: 10px;
+  margin-bottom: 10px;
+  font-size: clamp(18px, 5vw, 32px);
+  word-wrap: break-word;
+  color: var(--light-blue);
+}
+.modal-exit-button {
+  position: absolute;
+  top: 3px;
+  left: 14px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 17px;
+  background-color: var(--secondary-blue);
+  color: var(--light-blue);
+  border: 5px solid var(--accent-blue);
+  z-index: 999999;
+  transition: all 0.3s ease;
+}
+.modal-exit-button:hover {
+  background-color: var(--hover-blue);
+  transform: scale(1.05);
+}
 
-  .modal-content {
-    flex: 1;
-    display: flex;
-    padding-right: 10px;
-    overflow-y: scroll;
-    flex-direction: column;
-    gap: 20px;
-  }
+/* =============================== */
+/* ABOUT MODAL – BLUE TERMINAL */
+/* =============================== */
+.about.modal {
+  background: linear-gradient(135deg, var(--dark-blue), var(--primary-blue)) !important;
+  border: 3px solid var(--accent-blue) !important;
+  box-shadow: 0 0 30px rgba(52, 152, 219, 0.4), inset 0 0 50px rgba(52, 152, 219, 0.1) !important;
+}
 
+.about .modal-title {
+  color: var(--accent-blue) !important;
+  text-shadow: 0 0 10px var(--accent-blue);
+  font-family: "Courier New", monospace !important;
+}
+.about .modal-title::before {
+  content: "> ";
+  color: var(--accent-blue);
+}
 
-  .modal-title {
-    font-size: clamp(18px, 5vw, 32px);
-    word-wrap: break-word;
-    text-align: center;
-    position: relative;
-    padding-top: 10px;
-    margin-bottom: 10px;
+.about .modal-paragraph {
+  color: var(--light-blue) !important;
+  line-height: 1.8;
+  text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+  font-family: "Courier New", monospace !important;
+}
+.about .modal-paragraph a {
+  color: var(--accent-blue) !important;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+.about .modal-paragraph a:hover {
+  color: #87ceeb !important;
+}
 
-    font-family: "Michroma", system-ui, -apple-system, BlinkMacSystemFont,
-      "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
-      "Helvetica Neue", sans-serif;
-  }
+.about .modal-exit-button {
+  background: var(--dark-blue) !important;
+  top: 26px;
+  left: 18px;
+  color: var(--accent-blue) !important;
+  border: 2px solid var(--accent-blue) !important;
+  font-family: "Courier New", monospace !important;
+  text-transform: uppercase;
+}
+.about .modal-exit-button:hover {
+  background: var(--accent-blue) !important;
+  color: var(--dark-blue) !important;
+}
 
-  h1,
-  h2 {
-    margin-bottom: 20px;
-  }
+/* =============================== */
+/* PROJECTS MODAL – GLASS BLUE CARD */
+/* =============================== */
+.projects.modal {
+  background: linear-gradient(135deg, var(--glass-blue), rgba(44, 62, 80, 0.3)) !important;
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(52, 152, 219, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
 
-  h2 {
-    font-size: medium;
-  }
+.projects .modal-title {
+  color: var(--accent-blue) !important;
+  font-weight: 900;
+  text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+}
 
-  .modal-paragraph {
-    font-size: clamp(12px, 4vw, 20px);
-    word-wrap: break-word;
-    margin-bottom: 5px;
-    font-family: "Oswald", system-ui, -apple-system, BlinkMacSystemFont,
-      "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
-      "Helvetica Neue", sans-serif;
-  }
+.projects .project-card {
+  background: rgba(52, 152, 219, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(52, 152, 219, 0.2);
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.projects .project-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.2), transparent);
+  transition: left 0.5s;
+}
+.projects .project-card:hover::before { 
+  left: 100%; 
+}
+.projects .project-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 40px rgba(52, 152, 219, 0.4);
+  border-color: rgba(52, 152, 219, 0.6);
+}
 
-  &.about {
-    justify-content: center;
-    align-items: center;
-  }
+.projects .project-card h2 {
+  color: var(--light-blue) !important;
+  display: flex;
+  font-size: x-large;
+  align-items: center;
+  gap: 10px;
+}
+.projects .project-card h2::before {
+  content: "▸";
+  color: var(--accent-blue);
+  font-size: 1.2em;
+}
+.projects .project-card p {
+  color: var(--light-blue) !important;
+  opacity: 0.9;
+  font-size: small;
+  line-height: 1.6;
+}
 
-  .modal-exit-button {
-    font-family: "Michroma", system-ui, -apple-system, BlinkMacSystemFont,
-      "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
-      "Helvetica Neue", sans-serif;
-    position: absolute;
-    top: 3px;
-    left: 14px;
-    padding: 10px 20px;
-    font-size: 16px;
-    width: fit-content;
-    padding-top: 5px;
-    margin-top: 7px;
-    cursor: pointer;
-    background-color: #67809a75;
-    color: #3d5166ff;
-    border: 5px solid #3d5166ff;
-    border-radius: 17px;
-    z-index: 99999999;
+.projects .modal-exit-button {
+  top: 20px;
+  left: 20px;
+  font-family: "Michroma", sans-serif !important;
+  background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.2), transparent);
+  color: var(--light-blue) !important;
+  border: none !important;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
 
-    &:hover {
-      background-color: rgba(47, 82, 120, 0.314);
-    }
+/* =============================== */
+/* EDUCATION MODAL – BLUE PAPER STYLE */
+/* =============================== */
+.education.modal {
+  background: linear-gradient(135deg, var(--paper-blue), #ebf5fb) !important;
+  border: 8px solid var(--accent-blue) !important;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.4), inset 0 0 100px rgba(52, 152, 219, 0.1) !important;
+  width: 70%;
+  position: fixed;
+}
+.education.modal::before {
+  content: "";
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  border: 2px solid var(--accent-blue);
+  pointer-events: none;
+  z-index: 0;
+}
+.education .modal-title {
+  color: var(--primary-blue) !important;
+  font-family: "Georgia", serif !important;
+  font-style: italic;
+  text-shadow: 1px 1px 2px rgba(44, 62, 80, 0.1);
+  position: relative;
+  z-index: 1;
+}
+.education .degree-info {
+  text-align: center;
+  margin: 30px 0;
+  padding: 30px;
+  background: rgba(52, 152, 219, 0.1);
+  border-left: 5px solid var(--accent-blue);
+  border-right: 5px solid var(--accent-blue);
+  z-index: 1;
+  position: relative;
+}
+.education h3 {
+  color: var(--primary-blue) !important;
+  font-size: 1.3em;
+  line-height: 1.8;
+  margin: 10px 0;
+  font-family: "Georgia", serif !important;
+}
+.education .seal {
+  width: 80px;
+  height: 80px;
+  margin: 20px auto;
+  border: 3px solid var(--accent-blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, var(--light-blue), var(--accent-blue));
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  font-size: 2em;
+  color: var(--primary-blue);
+}
+.education .modal-exit-button {
+  background: var(--accent-blue) !important;
+  color: var(--light-blue) !important;
+  border: 3px solid var(--secondary-blue) !important;
+  font-family: "Georgia", serif !important;
+  font-weight: bold;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .education.modal {
+    width: 90%;
   }
   
+  .loading-screen-button {
+    font-size: 32px;
+    padding: 8px 30px;
+  }
+  
+  .no-sound-button {
+    font-size: 18px;
+  }
+  
+  .modal {
+    padding: 15px;
+  }
 }

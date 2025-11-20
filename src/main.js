@@ -3,9 +3,9 @@ import './style.scss'
 import { OrbitControls } from './utils/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { GLTFExporter, ThreeMFLoader } from 'three/examples/jsm/Addons.js';
-import { zip } from 'three/examples/jsm/libs/fflate.module.js';
 import gsap from "gsap";
+import {Howler} from 'howler';
+import { texture } from 'three/tsl';
 
 /////////
 //  TODO
@@ -45,7 +45,14 @@ manager.onError = function(url) {
     console.error(`Error loading: ${url}`);
 };
 
+let randomTips = ["Tip: Use Shift and LMB to pan around, and the mouse wheel to zoom.","Use Showcase mode to get a closer look at projects!","Click on the signs to learn more about me!","Click on screens to play their videos!","Tip: You can mute/unmute the background music using the button on the top-left corner.","Explore the room to find interactive elements!","Tip: On mobile, tap and drag to look around, and pinch to zoom.","Spin the chair by clicking on it!", "Two interactive elements are still buggy and one has no pointing mouse! Can you find them?"];
+
 manager.onLoad = function() {
+    const randomTipElement = document.querySelector(".random-tips");
+    if (randomTipElement) {
+        const randomIndex = Math.floor(Math.random() * randomTips.length);
+        randomTipElement.textContent = randomTips[randomIndex];
+    }
     console.log("ALL RESOURCES LOADED!");
     resourcesLoaded = true;
     setupLoadingScreenButton();
@@ -147,6 +154,108 @@ let previousControlsTarget = new THREE.Vector3();
 let gameboyScreenBody = null;
 let gameboyScreen = null;
 let initialAnimationObjs = [];
+
+
+// music and sound effects stuff
+let isMusicFaded = false;
+const MUSIC_FADE_TIME = 500;
+const BACKGROUND_MUSIC_VOLUME = 1;
+const FADED_VOLUME = 0;
+
+let muteToggleButton = document.createElement('button');
+        muteToggleButton.id = 'mutebutton';
+        muteToggleButton.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(66, 114, 145, 0.7);
+            color: white;
+            border: 2px solid white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 99999999;
+            transition: background 0.8s;
+            width: fit-content;
+            display: none;
+        `;
+        muteToggleButton.addEventListener('mouseenter', () => {
+            muteToggleButton.style.background = 'rgba(73, 125, 159, 0.7)';
+        });
+        muteToggleButton.addEventListener('mouseleave', () => {
+            muteToggleButton.style.background = 'rgba(66, 114, 145, 0.7)';
+        });
+        muteToggleButton.addEventListener('click', (e) =>{
+            if (touchHappened) return;
+            handleMuteToggle(e);
+        });
+        muteToggleButton.addEventListener('touchend', (e) =>{
+            if (touchHappened) return;
+            handleMuteToggle(e);
+        });
+    
+    muteToggleButton.style.display = 'hidden';
+
+const showCaseSound = {
+  click: new Howl({
+    src: ["/audio/wind.ogg"],
+    preload: true,
+    volume: 0.5,
+  }),
+};
+
+const clickSound = {
+  click: new Howl({
+    src: ["/audio/click.ogg"],
+    preload: true,
+    volume: 0.5,
+  }),
+};
+
+const backgroundMusic = new Howl({
+  src: ["/audio/Cavern of Remembrance.ogg"],
+  loop: true,
+  volume: BACKGROUND_MUSIC_VOLUME,
+});
+
+const updateMuteState = (muted) => {
+  if (muted) {
+    backgroundMusic.volume(0);
+  } else {
+    backgroundMusic.volume(BACKGROUND_MUSIC_VOLUME);
+  }
+};
+
+const handleMuteToggle = (e) => {
+  e.preventDefault();
+
+  isMuted = !isMuted;
+  updateMuteState(isMuted);
+
+  if (!backgroundMusic.playing()) {
+    backgroundMusic.play();
+  }
+
+  gsap.to(muteToggleButton, {
+    scale: 3,
+    duration: 0.75,
+    ease: "back.out(2)",
+    onStart: () => {
+        muteToggleButton.textContent = isMuted ? '\uD83D\uDD07' : '\uD83D\uDD08';
+
+      gsap.to(muteToggleButton, {
+        rotate: 0,
+        scale: 1,
+        duration: 0.75,
+        ease: "back.out(2)",
+        clearProps: "rotate",
+      });
+    },
+  });
+};
+
+let isMuted = true;
 
 // ========== VIDEO SETUP ==========
 const VideoElement = document.createElement("video");
@@ -263,7 +372,6 @@ const showcaseVideos = new Map([
 ]);
 
 // ========== LOADING SCREEN FUNCTIONS ==========
-let initialFinished = false;
 function setupLoadingScreenButton() {
     const loadingScreen = document.querySelector(".loading-screen");
     const loadingScreenButton = document.querySelector(".loading-screen-button");
@@ -309,9 +417,6 @@ function setupLoadingScreenButton() {
 
         console.log("Entering experience...");
 
-        if (noSoundButton) {
-            noSoundButton.textContent = "Enter without music";
-        }
         loadingScreenButton.style.cursor = "default";
         noSoundButton.style.cursor = "default";
         loadingScreenButton.style.border = "8px solid #3d5166ff";
@@ -322,8 +427,13 @@ function setupLoadingScreenButton() {
         noSoundButton.textContent = "~ To Hashim's Room ~";
         loadingScreen.style.background = "#67809a";
         loadingScreen.style.border = "8px solid #3d5166ff";
-
+        muteToggleButton.textContent = withSound ? '\uD83D\uDD08' : '\uD83D\uDD07';
+        if (withSound) {
+            isMuted = false;
+            backgroundMusic.play();
+        }
         playReveal();
+
     }
 
     loadingScreenButton.addEventListener("mouseenter", () => {
@@ -347,6 +457,7 @@ function setupLoadingScreenButton() {
             touchHappened = false;
             return;
         }
+        isMuted = false;
         handleEnter(true);
     });
 
@@ -360,6 +471,7 @@ function setupLoadingScreenButton() {
                 touchHappened = false;
                 return;
             }
+            isMuted = true;
             handleEnter(false);
         });
     }
@@ -375,29 +487,29 @@ function playReveal() {
     const tl = gsap.timeline();
     tl.to(loadingScreen, {
         scale: 0.5,
-        duration: 1.2,
+        duration: 1.7,
         delay: 0.25,
         ease: "back.in(1.8)",
     }).to(loadingScreen, {
         y: "-200vh",
-        transform: "perspective(1000px) rotateX(45deg) rotateY(-35deg)",
+        opacity: 0,
         duration: 1.2,
         ease: "back.in(1.8)",
         onComplete: () => {
             modalShown = false;
             startExperience();
             loadingScreen.remove();
+            muteToggleButton.style.display = 'block';
+
         }
     }, "-=0.1");
 }
 
+
 function startExperience() {
-    console.log("InitialFinished set to:"+initialFinished);
     console.log("Starting experience...");
     playInitialAnimation();
-    console.log("Initial animation finished.");
-    initialFinished = true;
-    console.log("InitialFinished set to:"+initialFinished);
+
 }
 
 
@@ -492,7 +604,7 @@ function handleRaycasterInteraction(){
 // ========== SHOWCASE MODE FUNCTIONS ==========
 
 function enterShowcaseMode(object) {
-    if (showcaseMode || modalShown|| !initialFinished) return;
+    if (showcaseMode || modalShown) return;
     
     showcaseMode = true;
     gsap.killTweensOf(object);
@@ -604,19 +716,25 @@ function enterShowcaseMode(object) {
         .add(direction.multiplyScalar(cameraDistance));
     
     // Animate camera to showcase position
+    backgroundMusic.fade(BACKGROUND_MUSIC_VOLUME, BACKGROUND_MUSIC_VOLUME, MUSIC_FADE_TIME);
+    showCaseSound.click.play();
+
     gsap.to(camera.position, {
         x: showcasePosition.x,
         y: showcasePosition.y,
         z: showcasePosition.z,
-        duration: 1,
-        ease: "power2.inOut"
+        duration: 1.5,
+        ease: "power2.inOut",
+        onComplete: () => {
+            showCaseSound.click.pause();
+        }
     });
     
     gsap.to(controls.target, {
         x: center.x,
         y: center.y,
         z: center.z,
-        duration: 1,
+        duration: 1.5,
         ease: "power2.inOut",
         onComplete: () => {
         controls.setPanLimitsAroundObject(center, 0);
@@ -640,19 +758,24 @@ function exitShowcaseMode() {
     }
 
     // Animate camera back to original position
+    backgroundMusic.fade(BACKGROUND_MUSIC_VOLUME, BACKGROUND_MUSIC_VOLUME, MUSIC_FADE_TIME);
+    showCaseSound.click.play();
     gsap.to(camera.position, {
         x: previousCameraPosition.x,
         y: previousCameraPosition.y,
         z: previousCameraPosition.z,
-        duration: 1,
-        ease: "power2.inOut"
+        duration: 1.5,
+        ease: "power2.inOut",
+        onComplete: () => {
+            showCaseSound.click.pause();
+        }
     });
     
     gsap.to(controls.target, {
         x: previousControlsTarget.x,
         y: previousControlsTarget.y,
         z: previousControlsTarget.z,
-        duration: 1.2,
+        duration: 1.5,
         ease: "power2.inOut",
         onComplete: () => {
             // Clean up
@@ -679,10 +802,10 @@ function showShowcaseUI() {
         exitButton.textContent = '✕ Exit';
         exitButton.style.cssText = `
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 70px;
+            left: 20px;
             padding: 10px 20px;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(57, 130, 144, 0.7);
             color: white;
             border: 2px solid white;
             border-radius: 5px;
@@ -690,16 +813,21 @@ function showShowcaseUI() {
             font-size: 16px;
             z-index: 1000;
             transition: background 0.3s;
+            opacity: 0;
         `;
         exitButton.addEventListener('mouseenter', () => {
             exitButton.style.background = 'rgba(255, 255, 255, 0.2)';
         });
         exitButton.addEventListener('mouseleave', () => {
-            exitButton.style.background = 'rgba(0, 0, 0, 0.7)';
+            exitButton.style.background = 'rgba(34, 81, 95, 0.7)';
         });
         exitButton.addEventListener('click', exitShowcaseMode);
         exitButton.addEventListener('touchend', exitShowcaseMode);
         document.body.appendChild(exitButton);
+        gsap.to(exitButton, {
+            opacity: 1,
+            duration: 0.5,
+        })
     }
     exitButton.style.display = 'block';
 
@@ -714,6 +842,11 @@ function hideShowcaseUI() {
 
 }
 
+
+let texturekh = textureLoader.load("./images/kh2.jpg");
+texturekh.colorSpace = THREE.SRGBColorSpace;
+texturekh.flipY = false;
+texturekh.repeat.set(3,3);
 
 // ========== 3D MODEL LOADING ==========
 loader.load("/models/portfolio_compressed-models.glb", (glb) => {
@@ -806,6 +939,12 @@ loader.load("/models/portfolio_compressed-models.glb", (glb) => {
                 aboutWire = child;
                 child.userData.initialPosition = new THREE.Vector3().copy(child.position);
             }
+            if (child.name.includes("photo")) {
+                
+                child.material = new THREE.MeshBasicMaterial({
+                    map: texturekh,
+                });
+            }
 
             // Fans
             if (child.name.includes("fan")) {
@@ -885,6 +1024,16 @@ function playInitialAnimation() {
         }, x * 0.05);
 
     }
+    muteToggleButton.style.display = 'block';
+    muteToggleButton.style.opacity = 0;
+    gsap.to(muteToggleButton, { 
+        duration: 1, 
+        opacity: 1, 
+        ease: "power2.inOut",
+
+    })
+    document.body.appendChild(muteToggleButton);
+
 }
 
 function playSignAnimation(object, isHovering) {
@@ -1146,6 +1295,15 @@ function playRotation(str="chair"){
             ease: "back.out(0.3)",
         });
     }
+    else if(str=="acWind"){
+        if(acWind.userData.isAnimating==true) return;
+            gsap.to(acWind.rotation, 
+        {
+            y: acWind.userData.initialRotation.y+=0.7, 
+            duration:0.8,
+            ease: "back.out(0.3)",
+        });
+    }
     
 }
 
@@ -1329,15 +1487,3 @@ const render = () => {
 
 // Start the render loop
 render();
-
-// Safety fallback - if loading takes too long
-setTimeout(() => {
-    if (!resourcesLoaded) {
-        console.warn("Loading timeout - forcing experience start");
-        const loadingScreen = document.querySelector(".loading-screen");
-        if (loadingScreen) {
-            loadingScreen.remove();
-        }
-        startExperience();
-    }
-}, 10000); // 10 second timeout
