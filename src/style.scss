@@ -265,6 +265,7 @@ body {
   border: 8px solid var(--accent-blue) !important;
   box-shadow: 0 10px 50px rgba(0, 0, 0, 0.4), inset 0 0 100px rgba(52, 152, 219, 0.1) !important;
   width: 70%;
+  overflow: hidden;
   position: fixed;
 }
 .education.modal::before {
