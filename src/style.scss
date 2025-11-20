@@ -60,14 +60,13 @@ body {
 .loading-screen-button,
 .no-sound-button {
   font-family: "Michroma";
-  background-color: var(--accent-blue);
+  background-color: rgb(103, 128, 154);
   padding: 10px 40px;
-  color: var(--light-blue);
-  border-radius: 1.2rem;
-  border: 8px solid var(--secondary-blue);
+  color: #3d5166ff;
   font-size: 42px;
   pointer-events: none;
   cursor: default;
+  border: none;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -155,6 +154,8 @@ body {
 .about .modal-paragraph {
   color: var(--light-blue) !important;
   line-height: 1.8;
+  overflow-x: auto;
+  font-size: 32px;
   text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
   font-family: "Courier New", monospace !important;
 }
@@ -171,6 +172,7 @@ body {
   background: var(--dark-blue) !important;
   top: 26px;
   left: 18px;
+  width: fit-content;
   color: var(--accent-blue) !important;
   border: 2px solid var(--accent-blue) !important;
   font-family: "Courier New", monospace !important;
@@ -196,10 +198,16 @@ body {
   font-weight: 900;
   text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
 }
-
+.random-tips{
+  width: fit-content;
+  display: block;
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: center;
+  align-items: center;
+}
 .projects .project-card {
   background: rgba(52, 152, 219, 0.1);
-  backdrop-filter: blur(10px);
   border: 1px solid rgba(52, 152, 219, 0.2);
   border-radius: 15px;
   padding: 25px;

@@ -44,8 +44,8 @@ manager.onError = function(url) {
 
 let randomTips = ["Tip: Use Shift and LMB to pan around, and the mouse wheel to zoom.","Use Showcase mode to get a closer look at projects!","Click on the signs to learn more about me!","Click on screens to play their videos!","Tip: You can mute/unmute the background music using the button on the top-left corner.","Explore the room to find interactive elements!","Tip: On mobile, tap and drag to look around, and pinch to zoom.","Spin the chair by clicking on it!", "Two interactive elements are still buggy and one has no pointing mouse! Can you find them?","Two video game references are in the room! Do you know what they are?"];
 
+const randomTipElement = document.querySelector(".random-tips");
 manager.onLoad = function() {
-    const randomTipElement = document.querySelector(".random-tips");
     if (randomTipElement) {
         const randomIndex = Math.floor(Math.random() * randomTips.length);
         randomTipElement.textContent = randomTips[randomIndex];
@@ -156,7 +156,7 @@ let initialAnimationObjs = [];
 // music and sound effects stuff
 let isMusicFaded = false;
 const MUSIC_FADE_TIME = 500;
-const BACKGROUND_MUSIC_VOLUME = 0.7;
+const BACKGROUND_MUSIC_VOLUME = 0.6;
 const FADED_VOLUME = 0.2;
 
 let muteToggleButton = document.createElement('button');
@@ -188,7 +188,7 @@ let muteToggleButton = document.createElement('button');
             handleMuteToggle(e);
         });
         muteToggleButton.addEventListener('touchend', (e) =>{
-            if (touchHappened) return;
+            e.preventDefault();
             handleMuteToggle(e);
         });
     
@@ -379,9 +379,23 @@ function setupLoadingScreenButton() {
         startExperience();
         return;
     }
-
+    
     console.log("Setting up loading screen button...");
-
+    loadingScreenButton.style.opacity = 0;
+    gsap.to(loadingScreenButton, {
+        opacity: 0,
+        duration: 0.5,
+    });
+    noSoundButton.style.opacity = 0;
+    gsap.to(noSoundButton, {
+        opacity: 0,
+        duration: 0.5,
+    });
+    randomTipElement.style.opacity = 1;
+    gsap.to(randomTipElement, {
+        opacity: 0,
+        duration: 0.5,
+    });
     // Style the button to show it's ready
     loadingScreenButton.textContent = "Enter!";
     loadingScreenButton.style.border = "8px solid #3d5166ff";
@@ -392,7 +406,12 @@ function setupLoadingScreenButton() {
     loadingScreenButton.style.cursor = "pointer";
     loadingScreenButton.style.pointerEvents = "auto";
     loadingScreenButton.style.transition = "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
+    loadingScreenButton.style.borderRadius = "1.2rem";
+    loadingScreenButton.style.border = "8px solid #3d5166ff";
 
+
+    noSoundButton.style.borderRadius = "1.2rem";
+    noSoundButton.style.border = "8px solid #3d5166ff";
     noSoundButton.textContent = "Enter without music";
     noSoundButton.style.border = "8px solid #3d5166ff";
     noSoundButton.style.background = "#67809a";
@@ -406,6 +425,20 @@ function setupLoadingScreenButton() {
 
     noSoundButton.style.display = "block";
 
+    gsap.to(loadingScreenButton, {
+        opacity: 1,
+        duration: 0.5,
+        y: 0,
+    });
+    gsap.to(noSoundButton, {
+        opacity: 1,
+        duration: 0.5,
+        y: 0,
+    });
+    gsap.to(randomTipElement, {
+        opacity: 1,
+        duration: 0.5,
+    });
     let isDisabled = false;
 
     function handleEnter(withSound = true) {
@@ -511,6 +544,8 @@ function startExperience() {
 
 
 // ========== MODAL FUNCTIONS ==========
+let currentModal = null;
+
 document.querySelectorAll(".modal-exit-button").forEach(button => {
     button.addEventListener("touchend", (e) => {
         e.preventDefault();
@@ -534,11 +569,11 @@ document.querySelectorAll(".modal-exit-button").forEach(button => {
 
 
 const showModal = (modal) => {
-    if (modalShown || !modal) return;
+    if (modalShown || !modal || showcaseMode) return;
     modalShown = true;
     controls.enabled = false;
     modal.style.display = "block";
-
+    currentModal = modal;
     gsap.set(modal, { opacity: 0 });
     gsap.to(modal, {
         opacity: 1,
@@ -556,13 +591,13 @@ const hideModal = (modal) => {
         duration: 0.5,
         onComplete: () => {
             modal.style.display = "none";
+            currentModal = null;
         }
     });
 };
 
 // ========== RAYCASTER INTERACTION ==========
 function handleRaycasterInteraction(){
-    
     if(currentIntersects.length>0 && modalShown == false){
         const object = currentIntersects[0].object;
         Object.entries(Links).forEach(([key,url]) =>{ //for links
@@ -803,8 +838,8 @@ function showShowcaseUI() {
         exitButton.textContent = '✕ Exit';
         exitButton.style.cssText = `
             position: fixed;
-            top: 70px;
-            left: 20px;
+            top: 20px;
+            right: 20px;
             padding: 10px 20px;
             background: rgba(57, 130, 144, 0.7);
             color: white;
@@ -1322,13 +1357,40 @@ window.addEventListener("touchstart", (e) => {
     pointer.y = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
 }, { passive: false });
 
+window.addEventListener("click", (e) => {
+
+    if (touchHappened) {
+        touchHappened = false;
+        return;
+    }
+    
+    if (modalShown && currentModal) {
+        const clickedInsideModal = currentModal.contains(e.target);
+        
+        if (!clickedInsideModal) {
+            hideModal(currentModal);
+            currentModal = null;
+        }
+    }
+    handleRaycasterInteraction();
+    
+});
+
 window.addEventListener("touchend", (e) => {
-    if (modalShown) return;
+    if (modalShown && currentModal) {
+        const clickedInsideModal = currentModal.contains(e.target);
+        
+        if (!clickedInsideModal) {
+            e.preventDefault();
+            hideModal(currentModal);
+            currentModal = null;
+            return; 
+        }
+        return;
+    }
     e.preventDefault();
     handleRaycasterInteraction();
 }, { passive: false });
-
-window.addEventListener("click", handleRaycasterInteraction);
 
 // ========== RENDERER, CAMERA, CONTROLS ==========
 const camera = new THREE.PerspectiveCamera(35, sizes.width / sizes.height, 0.1, 1000);
