@@ -1,3 +1,6 @@
+@import "./styles/fonts.scss";
+@import "./styles/reset.scss";
+
 :root {
   --primary-blue: #2c3e50;     /* Dark navy blue */
   --secondary-blue: #34495e;   /* Medium navy */
@@ -18,9 +21,8 @@
   box-sizing: border-box;
 }
 
-/* BASE STYLES */
 body {
-  font-family: "Michroma", sans-serif;
+  font-family: "Michroma" !important;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -37,7 +39,6 @@ body {
   width: 100%;
 }
 
-/* LOADING SCREEN */
 .loading-screen {
   position: fixed;
   top: 50%;
@@ -59,7 +60,7 @@ body {
 
 .loading-screen-button,
 .no-sound-button {
-  font-family: "Michroma";
+  font-family: "Michroma" !important;
   background-color: rgb(103, 128, 154);
   padding: 10px 40px;
   color: #3d5166ff;
@@ -76,7 +77,6 @@ body {
   padding-top: 0;
 }
 
-/* GENERIC MODAL BASE */
 .modal {
   position: fixed;
   display: none;
@@ -258,7 +258,7 @@ body {
 .projects .modal-exit-button {
   top: 20px;
   left: 20px;
-  font-family: "Michroma", sans-serif !important;
+  font-family: "Michroma" !important;
   background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.2), transparent);
   color: var(--light-blue) !important;
   border: none !important;
@@ -335,7 +335,6 @@ body {
   font-weight: bold;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .education.modal {
     width: 90%;
