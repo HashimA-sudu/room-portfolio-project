@@ -5,14 +5,11 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import gsap from "gsap";
 import {Howler} from 'howler';
-import { texture } from 'three/tsl';
 
 /////////
 //  TODO
-// make showcase,
-// rotating acWind
-//  fix textures of aboutMe sign
-// add music and sound effects
+// 
+// 
 /////////
 
 // ========== INITIAL SETUP ==========
@@ -45,7 +42,7 @@ manager.onError = function(url) {
     console.error(`Error loading: ${url}`);
 };
 
-let randomTips = ["Tip: Use Shift and LMB to pan around, and the mouse wheel to zoom.","Use Showcase mode to get a closer look at projects!","Click on the signs to learn more about me!","Click on screens to play their videos!","Tip: You can mute/unmute the background music using the button on the top-left corner.","Explore the room to find interactive elements!","Tip: On mobile, tap and drag to look around, and pinch to zoom.","Spin the chair by clicking on it!", "Two interactive elements are still buggy and one has no pointing mouse! Can you find them?"];
+let randomTips = ["Tip: Use Shift and LMB to pan around, and the mouse wheel to zoom.","Use Showcase mode to get a closer look at projects!","Click on the signs to learn more about me!","Click on screens to play their videos!","Tip: You can mute/unmute the background music using the button on the top-left corner.","Explore the room to find interactive elements!","Tip: On mobile, tap and drag to look around, and pinch to zoom.","Spin the chair by clicking on it!", "Two interactive elements are still buggy and one has no pointing mouse! Can you find them?","Two video game references are in the room! Do you know what they are?"];
 
 manager.onLoad = function() {
     const randomTipElement = document.querySelector(".random-tips");
@@ -159,8 +156,8 @@ let initialAnimationObjs = [];
 // music and sound effects stuff
 let isMusicFaded = false;
 const MUSIC_FADE_TIME = 500;
-const BACKGROUND_MUSIC_VOLUME = 1;
-const FADED_VOLUME = 0;
+const BACKGROUND_MUSIC_VOLUME = 0.7;
+const FADED_VOLUME = 0.2;
 
 let muteToggleButton = document.createElement('button');
         muteToggleButton.id = 'mutebutton';
@@ -714,11 +711,12 @@ function enterShowcaseMode(object) {
     const showcasePosition = new THREE.Vector3()
         .copy(center)
         .add(direction.multiplyScalar(cameraDistance));
-    
-    // Animate camera to showcase position
-    backgroundMusic.fade(BACKGROUND_MUSIC_VOLUME, BACKGROUND_MUSIC_VOLUME, MUSIC_FADE_TIME);
-    showCaseSound.click.play();
-
+        if(isMuted == false){
+        backgroundMusic.fade(BACKGROUND_MUSIC_VOLUME, FADED_VOLUME, MUSIC_FADE_TIME);
+        }
+        showCaseSound.click.play();
+        
+        // Animate camera to showcase position
     gsap.to(camera.position, {
         x: showcasePosition.x,
         y: showcasePosition.y,
@@ -758,7 +756,10 @@ function exitShowcaseMode() {
     }
 
     // Animate camera back to original position
-    backgroundMusic.fade(BACKGROUND_MUSIC_VOLUME, BACKGROUND_MUSIC_VOLUME, MUSIC_FADE_TIME);
+    if(isMuted == false){
+        backgroundMusic.fade(FADED_VOLUME, BACKGROUND_MUSIC_VOLUME, MUSIC_FADE_TIME);
+
+    }
     showCaseSound.click.play();
     gsap.to(camera.position, {
         x: previousCameraPosition.x,
