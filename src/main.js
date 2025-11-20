@@ -42,13 +42,13 @@ manager.onError = function(url) {
     console.error(`Error loading: ${url}`);
 };
 
-let randomTips = ["Tip: Use Shift and LMB to pan around, and the mouse wheel to zoom.","Use Showcase mode to get a closer look at projects!","Click on the signs to learn more about me!","Click on screens to play their videos!","Tip: You can mute/unmute the background music using the button on the top-left corner.","Explore the room to find interactive elements!","Tip: On mobile, tap and drag to look around, and pinch to zoom.","Spin the chair by clicking on it!", "Two interactive elements are still buggy and one has no pointing mouse! Can you find them?","Two video game references are in the room! Do you know what they are?"];
+let randomTips = ["Use Showcase mode to get a closer look at projects!","Click on the signs to learn more about me!","Click on screens to play their videos!","You can mute/unmute the background music using the button on the top-left corner.","Explore the room to find interactive elements!","Spin the chair by clicking on it!", "Two interactive elements are still buggy and one has no pointing mouse! Can you find them?","Two video game references are in the room! Do you know what they are?"];
 
 const randomTipElement = document.querySelector(".random-tips");
 manager.onLoad = function() {
     if (randomTipElement) {
         const randomIndex = Math.floor(Math.random() * randomTips.length);
-        randomTipElement.textContent = randomTips[randomIndex];
+        randomTipElement.textContent = "Random Tip: "+randomTips[randomIndex];
     }
     console.log("ALL RESOURCES LOADED!");
     resourcesLoaded = true;
@@ -495,6 +495,13 @@ function setupLoadingScreenButton() {
         loadingScreenButton.style.transform = "none";
     });
 
+    noSoundButton.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        touchHappened = true;
+        isMuted = true;
+        handleEnter(false);
+    });
+
     if (noSoundButton) {
         noSoundButton.addEventListener("click", (e) => {
             if (touchHappened) {
@@ -602,11 +609,15 @@ function handleRaycasterInteraction(){
         const object = currentIntersects[0].object;
         Object.entries(Links).forEach(([key,url]) =>{ //for links
              if(object.name.includes(key)){ // if contains links keys
-                const newWindow = window.open();
-                newWindow.opener = null;
-                newWindow.location = url;
-                newWindow.target = "_blank";
-                newWindow.rel = "noopener noreferrer";
+                clickSound.click.play();
+                let ConfirmationWindow = confirm("You are about to leave the portfolio and visit an external link. Do you want to proceed?");
+                if (ConfirmationWindow) {
+                    const newWindow = window.open();
+                    newWindow.opener = null;
+                    newWindow.location = url;
+                    newWindow.target = "_blank";
+                    newWindow.rel = "noopener noreferrer";
+                }
             }
             else if(object.name.includes("Showcase")){
                 if (!showcaseMode ) {
@@ -1358,39 +1369,60 @@ window.addEventListener("touchstart", (e) => {
 }, { passive: false });
 
 window.addEventListener("click", (e) => {
-
     if (touchHappened) {
         touchHappened = false;
         return;
     }
     
+    // Handle modal closing
     if (modalShown && currentModal) {
         const clickedInsideModal = currentModal.contains(e.target);
+        const clickedOnMuteButton = e.target.id === 'mutebutton' || e.target.closest('#mutebutton');
         
-        if (!clickedInsideModal) {
+        if (!clickedInsideModal && !clickedOnMuteButton) {
             hideModal(currentModal);
             currentModal = null;
+            return; // Exit early after closing modal
         }
+        
+        // If clicked on mute button, let it handle normally (don't return)
+        if (clickedOnMuteButton) {
+            return; // The mute button has its own event listener
+        }
+        
+        return; // Clicked inside modal, do nothing else
     }
-    handleRaycasterInteraction();
     
+    // Handle raycaster interaction only if modal is not shown
+    handleRaycasterInteraction();
 });
 
 window.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    
+    // Handle modal closing
     if (modalShown && currentModal) {
         const clickedInsideModal = currentModal.contains(e.target);
+        const clickedOnMuteButton = e.target.id === 'mutebutton' || e.target.closest('#mutebutton');
         
-        if (!clickedInsideModal) {
-            e.preventDefault();
+        if (!clickedInsideModal && !clickedOnMuteButton) {
             hideModal(currentModal);
             currentModal = null;
+            return; // Exit early after closing modal
+        }
+        
+        // If clicked on mute button, let it handle normally
+        if (clickedOnMuteButton) {
             return; 
         }
-        return;
+        
+        return; // Clicked inside modal, do nothing else
     }
-    e.preventDefault();
+    
+    // Handle raycaster interaction only if modal is not shown
     handleRaycasterInteraction();
 }, { passive: false });
+
 
 // ========== RENDERER, CAMERA, CONTROLS ==========
 const camera = new THREE.PerspectiveCamera(35, sizes.width / sizes.height, 0.1, 1000);
