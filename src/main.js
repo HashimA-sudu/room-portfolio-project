@@ -45,8 +45,21 @@ manager.onError = function(url) {
 let randomTips = ["Use Showcase mode to get a closer look at projects!","Click on the signs to learn more about me!","Click on screens to play their videos!","You can mute/unmute the background music using the button on the top-left corner.","Explore the room to find interactive elements!","Spin the chair by clicking on it!", "Two interactive elements are still buggy and one has no pointing mouse! Can you find them?","Two video game references are in the room! Do you know what they are?"];
 
 const randomTipElement = document.querySelector(".random-tips");
+const controlElement = document.querySelector(".control");
+
+
 manager.onLoad = function() {
+    if(controlElement){
+        if(window.innerWidth < 600) {
+            controlElement.textContent = "Tap and drag to look around, pinch to zoom, and use two fingers to pan.";
+        }
+        else {
+            controlElement.textContent = "Use Left Click and mouse movement to look around, Shift and left click to pan around, and the mouse wheel to zoom.";
+        }
+    }
+
     if (randomTipElement) {
+
         const randomIndex = Math.floor(Math.random() * randomTips.length);
         randomTipElement.textContent = "Random Tip: "+randomTips[randomIndex];
     }
@@ -78,7 +91,6 @@ environmentMap.setPath("./textures/skybox/");
 
 const loadedTextures = { day: {} };
 
-// Load textures
 Object.entries(TextureMap).forEach(([key, paths]) => {
     const TextureDay = textureLoader.load(paths.day);
     TextureDay.flipY = false;
@@ -882,10 +894,15 @@ function showShowcaseUI() {
 
 function hideShowcaseUI() {
     const exitButton = document.getElementById('showcase-exit');
-    const instructions = document.getElementById('showcase-instructions');
-    
-    if (exitButton) exitButton.style.display = 'none';
-    if (instructions) instructions.style.display = 'none';
+    if (exitButton) {
+        gsap.to(exitButton, {
+            opacity: 0,
+            duration: 0.5,
+            onComplete: () => {
+                exitButton.remove();
+            }
+        });
+    }
 
 }
 
@@ -1555,9 +1572,11 @@ const render = () => {
                 currentIntersectObject.name.includes("sign") ||
                 currentIntersectObject.name.includes("chair") ||
                 currentIntersectObject.name.includes("github") ||
-                currentIntersectObject.name.includes("email") ||
-                currentIntersectObject.name.includes("COOP")||
-                currentIntersectObject.name.includes("Link")) {
+                currentIntersectObject.name.includes("email")) {
+                document.body.style.cursor = "pointer";
+            }
+        } else if (modalShown == false){
+            if (currentIntersectObject.name.includes("Link")) {
                 document.body.style.cursor = "pointer";
             }
         } else {
